@@ -70,7 +70,9 @@ create policy subscriptions_select_self on public.subscriptions for select
 grant usage on schema public to anon, authenticated;
 
 grant select on public.sports  to anon, authenticated;
+grant insert, update, delete on public.sports to authenticated;   -- RLS: solo admin
 grant select on public.picks   to anon, authenticated;
+grant insert, update, delete on public.picks  to authenticated;   -- RLS: solo admin
 grant select on public.profiles      to authenticated;
 grant select on public.subscriptions to authenticated;
 grant select, insert, delete on public.pick_saves to authenticated;

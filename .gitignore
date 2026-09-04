@@ -3,8 +3,8 @@ supabase/.branches
 supabase/.temp
 supabase/.env
 
-# Entorno
-.env
+# Entorno — .env SÍ se versiona (solo valores públicos VITE_*).
+# Los secretos (service_role, etc.) van en .env.local, nunca versionado.
 .env.local
 .env.*.local
 

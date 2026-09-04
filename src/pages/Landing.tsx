@@ -81,6 +81,10 @@ export function Landing() {
     };
   }, []);
 
+  const loading = stats === null;
+  const hasHistory = !loading && stats.total_picks > 0;
+  const drawdown = bankroll ? minCumulative(bankroll) : 0;
+
   return (
     <div className="mkt">
       <header className="mkt-nav">
@@ -133,80 +137,87 @@ export function Landing() {
 
             <aside className="proof" aria-label="Rendimiento verificado">
               <div className="proof-top">
-                <BarChart3 aria-hidden /> Bankroll · últimos 12 meses
+                <BarChart3 aria-hidden /> Track record del canal
               </div>
-              <svg
-                className="spark"
-                viewBox="0 0 260 78"
-                role="img"
-                aria-label="Curva de bankroll ascendente de 0 a +78 unidades en 12 meses."
-              >
-                <defs>
-                  <linearGradient id="lg" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0" stopColor="var(--win)" stopOpacity="0.28" />
-                    <stop offset="1" stopColor="var(--win)" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                <line x1="0" y1="55.2" x2="260" y2="55.2" stroke="var(--grid-line)" strokeWidth="1" strokeDasharray="2 3" />
-                <path
-                  d="M0,55.2 L21.7,50.1 43.3,57.7 65,64 86.7,58.9 108.3,50.8 130,41.9 151.7,45.1 173.3,33.7 195,27.4 216.7,20.5 238.3,15.5 260,6 L260,78 L0,78 Z"
-                  fill="url(#lg)"
-                />
-                <polyline
-                  points="0,55.2 21.7,50.1 43.3,57.7 65,64 86.7,58.9 108.3,50.8 130,41.9 151.7,45.1 173.3,33.7 195,27.4 216.7,20.5 238.3,15.5 260,6"
-                  fill="none"
-                  stroke="var(--win)"
-                  strokeWidth="2.4"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-                <circle cx="260" cy="6" r="3.5" fill="var(--win)" />
-              </svg>
-              <div className="proof-stats">
-                <div>
-                  <div className="v pos">{pct(stats?.roi_pct ?? 14.2)}</div>
-                  <div className="l">ROI</div>
+
+              {loading && <p className="sub">Cargando datos…</p>}
+
+              {!loading && !hasHistory && (
+                <div style={{ padding: "10px 0" }}>
+                  <p style={{ fontSize: 14, color: "var(--text)", margin: "0 0 10px" }}>
+                    El historial arranca ahora. Cada pick que publique entra aquí —
+                    acierto o fallo— y queda a la vista de todos.
+                  </p>
+                  <p style={{ fontSize: 12.5, color: "var(--faint)", margin: 0 }}>
+                    Sin números inventados. Vuelve en unos días para ver la curva.
+                  </p>
                 </div>
-                <div>
-                  <div className="v pos">{units(stats?.profit_units ?? 78, true)}</div>
-                  <div className="l">Beneficio</div>
-                </div>
-                <div>
-                  <div className="v">{count(stats?.total_picks ?? 1284)}</div>
-                  <div className="l">Picks</div>
-                </div>
-                <div>
-                  <div className="v">{stats?.hit_rate_pct ?? 53.8} %</div>
-                  <div className="l">Acierto</div>
-                </div>
-              </div>
-              <p className="proof-foot">
-                <a href="#historial">Ver histórico</a>. Rendimiento pasado, no
-                garantiza resultados.
-              </p>
+              )}
+
+              {hasHistory && bankroll && bankroll.length > 1 && (
+                <BankrollChart data={bankroll} />
+              )}
+
+              {hasHistory && (
+                <>
+                  <div className="proof-stats">
+                    <div>
+                      <div className={`v ${(stats.roi_pct ?? 0) >= 0 ? "pos" : "neg"}`}>
+                        {pct(stats.roi_pct)}
+                      </div>
+                      <div className="l">ROI</div>
+                    </div>
+                    <div>
+                      <div className={`v ${(stats.profit_units ?? 0) >= 0 ? "pos" : "neg"}`}>
+                        {units(stats.profit_units, true)}
+                      </div>
+                      <div className="l">Beneficio</div>
+                    </div>
+                    <div>
+                      <div className="v">{count(stats.total_picks)}</div>
+                      <div className="l">Picks</div>
+                    </div>
+                    <div>
+                      <div className="v">
+                        {stats.hit_rate_pct != null ? `${stats.hit_rate_pct} %` : "—"}
+                      </div>
+                      <div className="l">Acierto</div>
+                    </div>
+                  </div>
+                  <p className="proof-foot">
+                    <a href="#historial">Ver histórico</a>. Rendimiento pasado, no
+                    garantiza resultados.
+                  </p>
+                </>
+              )}
             </aside>
           </div>
         </div>
 
-        <div className="strip">
-          <div className="strip-in">
-            <Metric v={pct(stats?.roi_pct ?? 14.2)} l="ROI 12 meses" />
-            <Metric v={`${stats?.yield_pct ?? 6.1} %`} l="Yield" />
-            <Metric v={count(stats?.total_picks ?? 1284)} l="Picks registrados" />
-            <Metric v="−22 u" l="Drawdown máx." />
-            <Metric
-              v={
-                stats?.first_pick_at
-                  ? new Date(stats.first_pick_at).toLocaleDateString("es-ES", {
-                      month: "short",
-                      year: "numeric",
-                    })
-                  : "sept. 2025"
-              }
-              l="Auditado desde"
-            />
+        {hasHistory && (
+          <div className="strip">
+            <div className="strip-in">
+              <Metric v={pct(stats.roi_pct)} l="ROI" />
+              <Metric
+                v={stats.yield_pct != null ? `${stats.yield_pct} %` : "—"}
+                l="Yield"
+              />
+              <Metric v={count(stats.total_picks)} l="Picks registrados" />
+              <Metric v={`${drawdown < 0 ? drawdown.toFixed(0) : "0"} u`} l="Drawdown máx." />
+              <Metric
+                v={
+                  stats.first_pick_at
+                    ? new Date(stats.first_pick_at).toLocaleDateString("es-ES", {
+                        month: "short",
+                        year: "numeric",
+                      })
+                    : "—"
+                }
+                l="Primer pick"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         <section className="blk wrap" id="como">
           <h2>Cómo funciona</h2>
@@ -239,42 +250,58 @@ export function Landing() {
           <div className="proof2">
             <div className="panel">
               <h3>Evolución del bankroll</h3>
-              <p className="sub">Unidades acumuladas sobre banca de 100 u · 12 meses.</p>
-              {bankroll && bankroll.length > 1 ? (
-                <BankrollChart data={bankroll} />
-              ) : (
+              <p className="sub">Unidades acumuladas sobre una banca fija.</p>
+              {loading ? (
                 <p className="sub">Cargando…</p>
+              ) : bankroll && bankroll.length > 1 ? (
+                <>
+                  <BankrollChart data={bankroll} />
+                  <figcaption>
+                    {units(stats?.profit_units ?? 0, true) + " "}
+                    acumulado · drawdown máximo{" "}
+                    <b className="neg">{drawdown < 0 ? drawdown.toFixed(0) : "0"} u</b> ·{" "}
+                    {count(stats?.total_picks ?? 0)} apuestas.
+                  </figcaption>
+                </>
+              ) : (
+                <p className="sub">
+                  La curva aparecerá aquí en cuanto haya picks resueltos.
+                </p>
               )}
-              <figcaption>
-                De 0 a <b className="pos">{units(stats?.profit_units ?? 78, true)}</b> ·
-                drawdown máximo <b className="neg">−22 u</b> ·{" "}
-                {count(stats?.total_picks ?? 1284)} apuestas.
-              </figcaption>
             </div>
             <div>
               <div className="panel" style={{ height: "100%" }}>
                 <h3>Últimos picks resueltos</h3>
                 <p className="sub">Incluye los que salieron mal. Así es esto.</p>
-                <div className="picks-mini">
-                  {recent.map((p) => (
-                    <article key={p.id} className="pk-mini" data-r={p.status}>
-                      <div className="pk-t">
-                        <span>{p.competition}</span>
-                        <time>resuelto</time>
-                      </div>
-                      <div className="pk-e">{p.event}</div>
-                      <div className="pk-s">
-                        Mercado: <b>{p.selection}</b>
-                      </div>
-                      <div className="pk-b">
-                        <span className="odds">{odds(p.odds)}</span>
-                        <span style={{ marginLeft: "auto" }}>
-                          <StatusBadge status={p.status} resultUnits={p.result_units} />
-                        </span>
-                      </div>
-                    </article>
-                  ))}
-                </div>
+                {recent.length === 0 ? (
+                  <p className="sub" style={{ marginTop: 12 }}>
+                    Aún no hay picks resueltos.
+                  </p>
+                ) : (
+                  <div className="picks-mini">
+                    {recent.map((p) => (
+                      <article key={p.id} className="pk-mini" data-r={p.status}>
+                        <div className="pk-t">
+                          <span>{p.competition}</span>
+                          <time>resuelto</time>
+                        </div>
+                        <div className="pk-e">{p.event}</div>
+                        <div className="pk-s">
+                          Mercado: <b>{p.selection}</b>
+                        </div>
+                        <div className="pk-b">
+                          <span className="odds">{odds(p.odds)}</span>
+                          <span style={{ marginLeft: "auto" }}>
+                            <StatusBadge
+                              status={p.status}
+                              resultUnits={p.result_units}
+                            />
+                          </span>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -290,20 +317,24 @@ export function Landing() {
                 FamilyPicks <ShieldCheck aria-label="Historial auditado y público" />
               </div>
               <div className="who-role">Tipster · fútbol europeo y NBA</div>
-              <div className="who-mini">
-                <div>
-                  <span className="v pos">{pct(stats?.roi_pct ?? 14.2)}</span>
-                  <span className="l">ROI</span>
+              {hasHistory && (
+                <div className="who-mini">
+                  <div>
+                    <span className={`v ${(stats.roi_pct ?? 0) >= 0 ? "pos" : "neg"}`}>
+                      {pct(stats.roi_pct)}
+                    </span>
+                    <span className="l">ROI</span>
+                  </div>
+                  <div>
+                    <span className="v">{count(stats.total_picks)}</span>
+                    <span className="l">Picks</span>
+                  </div>
+                  <div>
+                    <span className="v">{monthsSince(stats.first_pick_at)}</span>
+                    <span className="l">Activo</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="v">{count(stats?.total_picks ?? 1284)}</span>
-                  <span className="l">Picks</span>
-                </div>
-                <div>
-                  <span className="v">{monthsSince(stats?.first_pick_at ?? "2025-09-15")}</span>
-                  <span className="l">Activo</span>
-                </div>
-              </div>
+              )}
             </div>
             <div className="who-text">
               <p>
@@ -435,6 +466,17 @@ export function Landing() {
       </footer>
     </div>
   );
+}
+
+function minCumulative(points: BankrollPoint[]): number {
+  // drawdown máximo = mayor caída desde un pico anterior
+  let peak = points.length ? points[0].cumulative_units : 0;
+  let dd = 0;
+  for (const p of points) {
+    peak = Math.max(peak, p.cumulative_units);
+    dd = Math.min(dd, p.cumulative_units - peak);
+  }
+  return Math.round(dd);
 }
 
 function Metric({ v, l }: { v: string; l: string }) {

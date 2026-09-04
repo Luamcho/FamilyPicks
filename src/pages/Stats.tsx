@@ -106,19 +106,25 @@ export function Stats() {
               ))}
             </div>
           </div>
-          {chartData.length > 1 ? (
-            <BankrollChart data={chartData} />
-          ) : (
+          {bankroll === null ? (
             <p className="sub">Cargando gráfica…</p>
+          ) : chartData.length > 1 ? (
+            <>
+              <BankrollChart data={chartData} />
+              <figcaption>
+                De {chartData[0]?.cumulative_units ?? 0} a{" "}
+                <b className={(chartData[chartData.length - 1]?.cumulative_units ?? 0) >= 0 ? "pos" : "neg"}>
+                  {(chartData[chartData.length - 1]?.cumulative_units ?? 0) > 0 ? "+" : ""}
+                  {chartData[chartData.length - 1]?.cumulative_units ?? 0} u
+                </b>{" "}
+                en el periodo · {count(overview?.total_picks ?? null)} apuestas totales.
+              </figcaption>
+            </>
+          ) : (
+            <p className="sub">
+              Aún no hay histórico. Publica y liquida picks para ver la curva.
+            </p>
           )}
-          <figcaption>
-            De {chartData[0]?.cumulative_units ?? 0} a{" "}
-            <b className="pos">
-              {(chartData[chartData.length - 1]?.cumulative_units ?? 0) > 0 ? "+" : ""}
-              {chartData[chartData.length - 1]?.cumulative_units ?? 0} u
-            </b>{" "}
-            en el periodo · {count(overview?.total_picks ?? null)} apuestas totales.
-          </figcaption>
           <details className="data-toggle">
             <summary>Ver datos de la gráfica</summary>
             <table className="mini-table">
@@ -161,6 +167,9 @@ export function Stats() {
           ROI por deporte sobre el total de picks. Barra proporcional al ROI; roja si
           es negativo.
         </p>
+        {bySport && bySport.length === 0 && (
+          <p className="sub">Sin datos por deporte todavía.</p>
+        )}
         <div className="brk">
           {(bySport ?? []).map((s) => {
             const w = Math.round((Math.abs(s.roi_pct ?? 0) / maxSportRoi) * 100);
@@ -188,6 +197,9 @@ export function Stats() {
       <section className="card">
         <h2>Resultado por mes</h2>
         <p className="sub">Unidades ganadas o perdidas cada mes. Línea de base = 0.</p>
+        {bankroll && monthly.length === 0 && (
+          <p className="sub">Sin datos mensuales todavía.</p>
+        )}
         <div className="months" aria-hidden>
           {monthly.map((m, i) => {
             const h = Math.round((Math.abs(m.value) / maxAbs) * 46);
