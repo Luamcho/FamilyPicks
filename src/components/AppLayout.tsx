@@ -10,6 +10,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { RgStrip, DemoBanner } from "./bits";
 import { DEMO_MODE } from "@/lib/api";
 import { usePlan } from "@/context/PlanContext";
+import { useIsAdmin } from "@/lib/auth";
 import type { PlanTier } from "@/lib/types";
 
 const NAV = [
@@ -29,6 +30,7 @@ const TITLES: Record<string, string> = {
 export function AppLayout() {
   const { plan, setPlan } = usePlan();
   const { pathname } = useLocation();
+  const { isAdmin } = useIsAdmin();
   const title = TITLES[pathname] ?? "FamilyPicks";
 
   return (
@@ -53,6 +55,15 @@ export function AppLayout() {
           ))}
         </nav>
         <div className="side-foot">
+          {isAdmin && (
+            <>
+              <NavLink to="/admin" style={{ color: "var(--primary)", fontWeight: 600 }}>
+                Panel del tipster →
+              </NavLink>
+              <br />
+              <br />
+            </>
+          )}
           <b>Plan {planLabel(plan)}</b>
           {plan === "free" ? " · picks con 24 h de retraso." : " · picks en tiempo real."}
           <br />
