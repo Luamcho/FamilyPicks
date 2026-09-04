@@ -30,11 +30,12 @@ reales.
 src/
   pages/        Landing, Feed (picks), Stats, Results, Account
   pages/admin/  Dashboard, NewPick (publicar), AllPicks (+ liquidar / eliminar)
+  pages/Login.tsx  /entrar — login y registro
   components/   AppLayout, AdminLayout, PickCard, BankrollChart, SettleControl,
                 AgeGate, ThemeToggle, Toast, bits
   lib/          supabase, api (fallback a mock), store (persistencia demo),
                 auth (useIsAdmin), types, format
-  context/      ThemeContext, PlanContext
+  context/      ThemeContext, PlanContext, AuthContext (sesión + perfil)
   styles/       tokens (3 estados de tema) + base + components + marketing
 
 supabase/
@@ -69,16 +70,27 @@ docs/backend.md     modelo de datos, reglas de acceso, cómo levantarlo
 18+. Las predicciones no garantizan resultados; apostar conlleva riesgo de pérdida
 económica. Age gate, disclaimers y enlaces de ayuda forman parte del producto.
 
+## Cuentas
+
+`/entrar` — email + contraseña, login o registro. Supabase pide confirmación
+por email por defecto: tras registrarte verás "revisa tu correo". `/cuenta`
+muestra tu plan y perfil si tienes sesión, o un aviso para entrar si no.
+
 ## Panel del tipster
 
 `/admin` — resumen, publicar pick, liquidar (acierto/fallo/nulo + cuota de
-cierre), listado. Gated por `role = 'admin'`; en modo demo está abierto y los
-cambios se guardan en `localStorage`.
+cierre), listado. Gated por `role = 'admin'` (perfil real; en modo demo está
+siempre abierto y los cambios se guardan en `localStorage`).
+
+Para convertir tu cuenta en admin, en el SQL editor de Supabase:
+```sql
+update public.profiles set role = 'admin'
+where id = (select id from auth.users where email = 'tu_email');
+```
 
 ## Pendiente
 
-- Autenticación real (Supabase Auth) y páginas de login/registro.
 - Integrar Stripe (Checkout + webhook; el modelo de datos ya está).
-- Crear el proyecto Supabase y conectar env vars en Vercel.
 - `supabase gen types typescript` para tipar las respuestas.
 - Revisar PRs de dependabot (bumps de major: vite 5→8, react-router 6→7).
+- Guardar picks (`pick_saves`) desde la UI del feed.
