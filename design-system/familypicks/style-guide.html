@@ -1,0 +1,744 @@
+<title>FamilyPicks Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  /* ============ TOKENS — dark-first, three-state theming ============ */
+  :root{
+    --bg:#0B0F1A; --surface:#141A28; --surface-2:#1B2333; --border:#26303F;
+    --text:#F1F5F9; --muted:#94A3B8; --faint:#5B6676;
+    --primary:#0EA5E9; --primary-hover:#38BDF8; --on-primary:#04121C; --ring:#7DD3FC;
+    --win:#4ADE80; --loss:#F87171; --push:#CBD5E1; --pending:#FBBF24; --vip:#FACC15;
+    --win-solid:#22C55E; --loss-solid:#EF4444;
+    --win-bg:rgba(34,197,94,.15); --loss-bg:rgba(239,68,68,.15);
+    --push-bg:rgba(148,163,184,.15); --pending-bg:rgba(245,158,11,.15);
+    --shadow-md:0 4px 14px rgba(0,0,0,.45);
+    --glow:0 0 0 1px rgba(14,165,233,.4), 0 10px 30px rgba(14,165,233,.16);
+    --grid-line:rgba(148,163,184,.14);
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#F5F7FB; --surface:#FFFFFF; --surface-2:#EEF2F7; --border:#DCE3EC;
+      --text:#0E1726; --muted:#546174; --faint:#8A97A8;
+      --primary:#0369A1; --primary-hover:#0284C7; --on-primary:#FFFFFF; --ring:#38BDF8;
+      --win:#15803D; --loss:#DC2626; --push:#64748B; --pending:#B45309; --vip:#A16207;
+      --win-solid:#16A34A; --loss-solid:#DC2626;
+      --win-bg:rgba(22,163,74,.12); --loss-bg:rgba(220,38,38,.10);
+      --push-bg:rgba(100,116,139,.12); --pending-bg:rgba(180,83,9,.12);
+      --shadow-md:0 4px 14px rgba(15,23,42,.10);
+      --glow:0 0 0 1px rgba(3,105,161,.35), 0 10px 30px rgba(3,105,161,.14);
+      --grid-line:rgba(71,85,105,.16);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#F5F7FB; --surface:#FFFFFF; --surface-2:#EEF2F7; --border:#DCE3EC;
+    --text:#0E1726; --muted:#546174; --faint:#8A97A8;
+    --primary:#0369A1; --primary-hover:#0284C7; --on-primary:#FFFFFF; --ring:#38BDF8;
+    --win:#15803D; --loss:#DC2626; --push:#64748B; --pending:#B45309; --vip:#A16207;
+    --win-solid:#16A34A; --loss-solid:#DC2626;
+    --win-bg:rgba(22,163,74,.12); --loss-bg:rgba(220,38,38,.10);
+    --push-bg:rgba(100,116,139,.12); --pending-bg:rgba(180,83,9,.12);
+    --shadow-md:0 4px 14px rgba(15,23,42,.10);
+    --glow:0 0 0 1px rgba(3,105,161,.35), 0 10px 30px rgba(3,105,161,.14);
+    --grid-line:rgba(71,85,105,.16);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B0F1A; --surface:#141A28; --surface-2:#1B2333; --border:#26303F;
+    --text:#F1F5F9; --muted:#94A3B8; --faint:#5B6676;
+    --primary:#0EA5E9; --primary-hover:#38BDF8; --on-primary:#04121C; --ring:#7DD3FC;
+    --win:#4ADE80; --loss:#F87171; --push:#CBD5E1; --pending:#FBBF24; --vip:#FACC15;
+    --win-solid:#22C55E; --loss-solid:#EF4444;
+    --win-bg:rgba(34,197,94,.15); --loss-bg:rgba(239,68,68,.15);
+    --push-bg:rgba(148,163,184,.15); --pending-bg:rgba(245,158,11,.15);
+    --shadow-md:0 4px 14px rgba(0,0,0,.45);
+    --glow:0 0 0 1px rgba(14,165,233,.4), 0 10px 30px rgba(14,165,233,.16);
+    --grid-line:rgba(148,163,184,.14);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{animation-duration:.001ms!important;transition-duration:.001ms!important} }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font:400 16px/1.6 "Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .num{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+  .wrap{max-width:1080px; margin:0 auto; padding:0 24px}
+  header.top{
+    position:sticky; top:0; z-index:20; background:color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter:blur(8px); border-bottom:1px solid var(--border);
+  }
+  .top-inner{max-width:1080px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; gap:16px; justify-content:space-between}
+  .brand{display:flex; align-items:center; gap:10px; font-family:"Outfit",sans-serif; font-weight:800; letter-spacing:-.01em; font-size:18px}
+  .brand .dot{width:11px;height:11px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 4px color-mix(in srgb,var(--primary) 22%,transparent)}
+  .toggle{
+    display:inline-flex; align-items:center; gap:7px; padding:8px 13px; border-radius:10px; cursor:pointer;
+    background:var(--surface-2); color:var(--text); border:1px solid var(--border);
+    font:600 13px/1 "Outfit",sans-serif;
+  }
+  .toggle:hover{border-color:var(--primary)}
+  .toggle:focus-visible{outline:2px solid var(--ring); outline-offset:2px}
+
+  .hero{padding:64px 0 40px; border-bottom:1px solid var(--border)}
+  .kicker{font:600 12px/1 "Outfit",sans-serif; letter-spacing:.16em; text-transform:uppercase; color:var(--primary); margin:0 0 16px}
+  h1{font-family:"Outfit",sans-serif; font-weight:800; letter-spacing:-.02em; font-size:clamp(34px,6vw,56px); line-height:1.05; margin:0 0 18px; text-wrap:balance}
+  .lede{font-size:18px; color:var(--muted); max-width:60ch; margin:0}
+  .hero-meta{display:flex; flex-wrap:wrap; gap:10px; margin-top:26px}
+  .pill{font:600 12px/1 "Outfit",sans-serif; padding:7px 11px; border-radius:999px; background:var(--surface); border:1px solid var(--border); color:var(--muted)}
+
+  section{padding:56px 0; border-bottom:1px solid var(--border)}
+  .eyebrow{font:600 11px/1 "Outfit",sans-serif; letter-spacing:.18em; text-transform:uppercase; color:var(--faint); margin:0 0 8px}
+  h2{font-family:"Outfit",sans-serif; font-weight:700; letter-spacing:-.01em; font-size:clamp(24px,3.4vw,32px); margin:0 0 10px; text-wrap:balance}
+  .section-note{color:var(--muted); max-width:64ch; margin:0 0 32px}
+  h3{font-family:"Outfit",sans-serif; font-weight:600; font-size:16px; margin:32px 0 14px; letter-spacing:.01em}
+  h3:first-of-type{margin-top:0}
+  p{margin:0 0 14px}
+  a{color:var(--primary)}
+
+  /* color swatches */
+  .swatches{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px}
+  .sw{border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--surface)}
+  .sw .chip{height:64px}
+  .sw .meta{padding:10px 12px; display:grid; gap:2px}
+  .sw .name{font:600 13px/1.3 "Outfit",sans-serif}
+  .sw .hex{font-size:12px; color:var(--muted)}
+
+  .semantic-row{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-top:6px}
+  .semantic{border:1px solid var(--border); border-radius:12px; padding:14px; background:var(--surface); display:grid; gap:8px}
+  .semantic .lbl{display:flex; align-items:center; gap:7px; font:600 13px/1 "Outfit",sans-serif}
+  .semantic .demo{font-size:12px; color:var(--muted)}
+  .ic{width:16px; height:16px; flex:none; stroke-width:2.25; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round}
+  .ic-lg{width:20px;height:20px}
+
+  /* type specimens */
+  .spec{border:1px solid var(--border); border-radius:14px; background:var(--surface); padding:22px; margin-bottom:12px}
+  .spec .role{font:600 11px/1 "Outfit",sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--faint); margin-bottom:12px}
+  .spec .sample{margin:0}
+  .s-display{font-family:"Outfit",sans-serif; font-weight:800; font-size:40px; letter-spacing:-.02em; line-height:1.05}
+  .s-heading{font-family:"Outfit",sans-serif; font-weight:600; font-size:20px}
+  .s-body{font-family:"Inter",sans-serif; font-size:16px; color:var(--text); max-width:62ch}
+  .s-data{font-family:"JetBrains Mono",monospace; font-weight:700; font-size:22px; font-variant-numeric:tabular-nums}
+  .scale-bars{display:flex; flex-wrap:wrap; gap:14px; align-items:baseline}
+  .scale-bars span{font-family:"Outfit",sans-serif; font-weight:700; color:var(--text)}
+
+  /* spacing + radius */
+  .spacing{display:grid; gap:9px}
+  .spacing .r{display:flex; align-items:center; gap:14px; font-size:13px; color:var(--muted)}
+  .spacing .bar{height:14px; background:var(--primary); border-radius:3px; opacity:.85}
+  .spacing .tok{width:96px; font:600 12px/1 "JetBrains Mono",monospace; color:var(--text)}
+  .radii{display:flex; flex-wrap:wrap; gap:14px}
+  .radii div{width:88px; height:64px; background:var(--surface-2); border:1px solid var(--border); display:flex; align-items:flex-end; justify-content:center; font-size:11px; color:var(--muted); padding-bottom:6px}
+
+  /* component gallery */
+  .gallery{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px; align-items:start}
+
+  .pick{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:16px; display:grid; gap:12px}
+  .pick[data-status="win"]{border-left:3px solid var(--win-solid)}
+  .pick[data-status="loss"]{border-left:3px solid var(--loss-solid)}
+  .pick[data-status="pending"]{border-left:3px solid var(--pending)}
+  .pick--featured{box-shadow:var(--glow); border-color:color-mix(in srgb,var(--primary) 50%, var(--border))}
+  .pick .meta{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted)}
+  .pick .meta .sport{display:inline-flex; align-items:center; gap:5px; color:var(--text); font-weight:600}
+  .pick .meta time{margin-left:auto}
+  .pick .event{font-family:"Outfit",sans-serif; font-weight:600; font-size:17px}
+  .pick .sel{font-size:14px; color:var(--muted)}
+  .pick .sel b{color:var(--text)}
+  .pick .data{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .odds{font:700 13px/1 "JetBrains Mono",monospace; font-variant-numeric:tabular-nums; padding:5px 9px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); display:inline-flex; align-items:center; gap:5px}
+  .odds .up{color:var(--win)} .odds .down{color:var(--loss)}
+  .stake{font:600 12px/1 "JetBrains Mono",monospace; color:var(--muted)}
+  .meter{display:flex; gap:3px; margin-left:auto}
+  .meter i{width:7px; height:16px; border-radius:2px; background:var(--border)}
+  .meter i.on{background:var(--primary)}
+  .pick .foot{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); border-top:1px solid var(--border); padding-top:10px}
+  .pick .foot .ic{color:var(--primary); flex:none}
+
+  .badge{display:inline-flex; align-items:center; gap:5px; font:600 11px/1 "Inter",sans-serif; padding:5px 8px; border-radius:8px; text-transform:uppercase; letter-spacing:.03em}
+  .badge--win{color:var(--win); background:var(--win-bg)}
+  .badge--loss{color:var(--loss); background:var(--loss-bg)}
+  .badge--push{color:var(--push); background:var(--push-bg)}
+  .badge--pending{color:var(--pending); background:var(--pending-bg)}
+  .badge--vip{color:#1A1204; background:linear-gradient(135deg,#EAB308,#F59E0B)}
+  .badge-set{display:flex; flex-wrap:wrap; gap:8px}
+
+  .kpi{background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; display:grid; gap:8px}
+  .kpi .k-top{display:flex; align-items:center; justify-content:space-between; font:600 12px/1 "Outfit",sans-serif; color:var(--muted); letter-spacing:.04em; text-transform:uppercase}
+  .kpi .k-val{font-family:"Outfit",sans-serif; font-weight:800; font-size:34px; letter-spacing:-.02em; line-height:1}
+  .kpi .k-val.pos{color:var(--win)} .kpi .k-val.neg{color:var(--loss)}
+  .kpi .k-spark{height:34px; width:100%}
+  .kpi .k-ctx{font:500 12px/1.4 "JetBrains Mono",monospace; color:var(--muted); font-variant-numeric:tabular-nums}
+
+  .tipster{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:22px; display:grid; gap:16px}
+  .tipster .t-head{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .tipster .t-av{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#0EA5E9,#6366F1); flex:none}
+  .tipster .t-name{font-family:"Outfit",sans-serif; font-weight:800; font-size:19px; display:flex; align-items:center; gap:6px; letter-spacing:-.01em}
+  .tipster .verified{color:var(--primary)}
+  .tipster .t-sub{font-size:12px; color:var(--muted); margin-top:2px}
+  .tipster .t-method{font-size:13px; color:var(--muted); line-height:1.5; margin:0}
+  .tipster .t-stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(84px,1fr)); gap:14px; border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:14px 0}
+  .tipster .t-stats div{display:grid; gap:3px}
+  .tipster .t-stats .v{font:700 16px/1 "JetBrains Mono",monospace; font-variant-numeric:tabular-nums}
+  .tipster .t-stats .v.pos{color:var(--win)}
+  .tipster .t-stats .l{font-size:10px; color:var(--faint); text-transform:uppercase; letter-spacing:.08em}
+  .tipster .t-actions{display:flex; gap:8px}
+
+  .btn{font:600 14px/1 "Outfit",sans-serif; padding:11px 16px; border-radius:10px; cursor:pointer; border:1px solid transparent; transition:background .18s ease, box-shadow .18s ease, transform .12s ease}
+  .btn:active{transform:translateY(1px)}
+  .btn:focus-visible{outline:2px solid var(--ring); outline-offset:2px}
+  .btn-primary{background:var(--primary); color:var(--on-primary)}
+  .btn-primary:hover{background:var(--primary-hover)}
+  .btn-primary.cta{box-shadow:var(--glow)}
+  .btn-ghost{background:transparent; color:var(--text); border-color:var(--border)}
+  .btn-ghost:hover{background:var(--surface-2)}
+  .btn-sm{padding:8px 12px; font-size:13px}
+  .btn:disabled{opacity:.45; cursor:not-allowed}
+  .btn-row{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+
+  /* results table */
+  .table-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:14px; background:var(--surface)}
+  table{border-collapse:collapse; width:100%; min-width:560px; font-size:14px}
+  thead th{position:sticky; top:0; background:var(--surface-2); text-align:left; font:600 11px/1 "Outfit",sans-serif; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); padding:12px 14px; border-bottom:1px solid var(--border); white-space:nowrap}
+  thead th[aria-sort]{color:var(--text)}
+  tbody td{padding:12px 14px; border-bottom:1px solid var(--border)}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr[data-r="win"]{box-shadow:inset 3px 0 0 var(--win-solid)}
+  tbody tr[data-r="loss"]{box-shadow:inset 3px 0 0 var(--loss-solid)}
+  tbody tr[data-r="push"]{box-shadow:inset 3px 0 0 var(--push)}
+  td.n{font-family:"JetBrains Mono",monospace; font-variant-numeric:tabular-nums; text-align:right}
+  td .pos{color:var(--win)} td .neg{color:var(--loss)}
+  .tbl-summary{display:flex; flex-wrap:wrap; gap:20px; padding:14px 4px 18px; font:600 13px/1 "Outfit",sans-serif}
+  .tbl-summary span{color:var(--muted); font-weight:500}
+  .tbl-summary b{font-family:"JetBrains Mono",monospace; font-variant-numeric:tabular-nums}
+
+  /* bankroll chart */
+  .chart-card{background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px}
+  .chart-card figcaption{font-size:13px; color:var(--muted); margin-top:10px}
+  .chart-card svg{display:block; width:100%; height:auto}
+
+  /* confidence + plans */
+  .conf{display:flex; align-items:center; gap:12px}
+  .conf .bars{display:flex; gap:4px}
+  .conf .bars i{width:10px; height:22px; border-radius:2px; background:var(--border)}
+  .conf .bars i.on{background:var(--primary)}
+  .conf .lbl{font:600 13px/1 "Outfit",sans-serif}
+  .plans{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px}
+  .plan{border:1px solid var(--border); border-radius:14px; padding:18px; background:var(--surface); display:grid; gap:10px}
+  .plan--rec{border-color:var(--primary); box-shadow:var(--glow)}
+  .plan .p-name{font:700 14px/1 "Outfit",sans-serif; display:flex; justify-content:space-between; align-items:center}
+  .plan .p-price{font-family:"Outfit",sans-serif; font-weight:800; font-size:26px}
+  .plan .p-price small{font-size:12px; font-weight:600; color:var(--muted)}
+  .plan ul{margin:0; padding-left:18px; font-size:13px; color:var(--muted); display:grid; gap:5px}
+  .tag{font:600 10px/1 "Outfit",sans-serif; padding:4px 7px; border-radius:6px; background:var(--primary); color:var(--on-primary); text-transform:uppercase; letter-spacing:.06em}
+
+  /* age gate mock */
+  .agegate{border:1px solid var(--border); border-radius:16px; background:var(--surface-2); padding:28px; text-align:center; max-width:420px; margin:0 auto; box-shadow:var(--shadow-md)}
+  .agegate h4{font-family:"Outfit",sans-serif; font-weight:800; font-size:20px; margin:0 0 8px}
+  .agegate p{font-size:13px; color:var(--muted); margin:0 0 18px}
+  .agegate .g-actions{display:flex; gap:10px; justify-content:center}
+
+  /* do / dont */
+  .dd{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  .dd .col{border:1px solid var(--border); border-radius:14px; padding:18px; background:var(--surface)}
+  .dd .col h4{margin:0 0 12px; font-family:"Outfit",sans-serif; font-size:14px; display:flex; align-items:center; gap:8px}
+  .dd .do h4{color:var(--win)} .dd .dont h4{color:var(--loss)}
+  .dd ul{margin:0; padding-left:20px; display:grid; gap:8px; font-size:14px; color:var(--muted)}
+
+  .callout{border:1px solid var(--border); border-left:3px solid var(--pending); border-radius:10px; background:var(--pending-bg); padding:16px 18px; font-size:14px}
+  .callout b{color:var(--text)}
+
+  footer{padding:40px 0 64px; color:var(--muted); font-size:13px}
+  footer .rg{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px}
+  footer .rg .badge{background:var(--surface); border:1px solid var(--border); color:var(--text)}
+
+  @media (max-width:640px){
+    .dd{grid-template-columns:1fr}
+    .hero{padding:44px 0 32px}
+    section{padding:44px 0}
+  }
+</style>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand"><span class="dot" aria-hidden="true"></span> FamilyPicks</div>
+    <button class="toggle" id="themeToggle" type="button" aria-label="Cambiar tema claro/oscuro">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2M12 19v2M5 5l1.5 1.5M17.5 17.5L19 19M3 12h2M19 12h2M5 19l1.5-1.5M17.5 6.5L19 5"/><circle cx="12" cy="12" r="4"/></svg>
+      <span id="themeLabel">Tema</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <p class="kicker">Sistema de diseño · v1</p>
+    <h1>FamilyPicks Design System</h1>
+    <p class="lede">La guía visual de un servicio de predicciones deportivas de un único tipster, con historial verificado y público. Oscuro por defecto, datos legibles, y una regla que lo gobierna todo: el color de resultado (verde acierto, rojo fallo) manda sobre el color de marca.</p>
+    <div class="hero-meta">
+      <span class="pill">Modo oscuro por defecto</span>
+      <span class="pill">Outfit · Inter · JetBrains Mono</span>
+      <span class="pill">18+ · Juego responsable</span>
+      <span class="pill">WCAG AA</span>
+    </div>
+  </div>
+
+  <!-- COLOR -->
+  <section id="color">
+    <p class="eyebrow">Fundamentos · Color</p>
+    <h2>Paleta</h2>
+    <p class="section-note">El azul <b>#0EA5E9</b> es la marca porque el rojo y el verde están reservados a la semántica de apuesta. El neutro tiene un sesgo azul-marino: elegido, no heredado. El oro solo aparece en “Premium/VIP”.</p>
+
+    <h3>Superficie e interfaz (oscuro)</h3>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#0B0F1A"></div><div class="meta"><span class="name">Background</span><span class="hex num">#0B0F1A · --bg</span></div></div>
+      <div class="sw"><div class="chip" style="background:#141A28"></div><div class="meta"><span class="name">Surface / Card</span><span class="hex num">#141A28 · --surface</span></div></div>
+      <div class="sw"><div class="chip" style="background:#1B2333"></div><div class="meta"><span class="name">Surface elevada</span><span class="hex num">#1B2333 · --surface-2</span></div></div>
+      <div class="sw"><div class="chip" style="background:#26303F"></div><div class="meta"><span class="name">Border</span><span class="hex num">#26303F · --border</span></div></div>
+      <div class="sw"><div class="chip" style="background:#F1F5F9"></div><div class="meta"><span class="name">Texto primario</span><span class="hex num">#F1F5F9 · --text</span></div></div>
+      <div class="sw"><div class="chip" style="background:#94A3B8"></div><div class="meta"><span class="name">Texto secundario</span><span class="hex num">#94A3B8 · --muted</span></div></div>
+    </div>
+
+    <h3>Marca y foco</h3>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#0EA5E9"></div><div class="meta"><span class="name">Primary</span><span class="hex num">#0EA5E9 · --primary</span></div></div>
+      <div class="sw"><div class="chip" style="background:#38BDF8"></div><div class="meta"><span class="name">Primary hover</span><span class="hex num">#38BDF8</span></div></div>
+      <div class="sw"><div class="chip" style="background:#7DD3FC"></div><div class="meta"><span class="name">Focus ring</span><span class="hex num">#7DD3FC · --ring</span></div></div>
+      <div class="sw"><div class="chip" style="background:linear-gradient(135deg,#EAB308,#F59E0B)"></div><div class="meta"><span class="name">VIP (gradiente)</span><span class="hex num">#EAB308 → #F59E0B</span></div></div>
+    </div>
+
+    <h3>Semántica de resultado — color + icono + etiqueta, nunca solo color</h3>
+    <div class="semantic-row">
+      <div class="semantic"><span class="lbl" style="color:var(--win)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Acierto</span><span class="demo num">#22C55E · +3.60 u</span></div>
+      <div class="semantic"><span class="lbl" style="color:var(--loss)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg> Fallo</span><span class="demo num">#EF4444 · −4.00 u</span></div>
+      <div class="semantic"><span class="lbl" style="color:var(--push)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg> Nulo / Push</span><span class="demo num">#94A3B8 · 0.00 u</span></div>
+      <div class="semantic"><span class="lbl" style="color:var(--pending)"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Pendiente</span><span class="demo">En juego · directo</span></div>
+    </div>
+
+    <h3 style="margin-top:28px">Modo claro (soportado)</h3>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#F5F7FB"></div><div class="meta"><span class="name">Background</span><span class="hex num">#F5F7FB</span></div></div>
+      <div class="sw"><div class="chip" style="background:#FFFFFF"></div><div class="meta"><span class="name">Surface</span><span class="hex num">#FFFFFF</span></div></div>
+      <div class="sw"><div class="chip" style="background:#0369A1"></div><div class="meta"><span class="name">Primary</span><span class="hex num">#0369A1</span></div></div>
+      <div class="sw"><div class="chip" style="background:#15803D"></div><div class="meta"><span class="name">Acierto</span><span class="hex num">#15803D</span></div></div>
+      <div class="sw"><div class="chip" style="background:#DC2626"></div><div class="meta"><span class="name">Fallo</span><span class="hex num">#DC2626</span></div></div>
+    </div>
+  </section>
+
+  <!-- TYPE -->
+  <section id="type">
+    <p class="eyebrow">Fundamentos · Tipografía</p>
+    <h2>Tres voces</h2>
+    <p class="section-note">Outfit para el impacto deportivo de los titulares y las cifras grandes. Inter para la lectura densa de tablas y textos. JetBrains Mono para todo dato que deba alinear en columna: cuotas, ROI, unidades.</p>
+
+    <div class="spec">
+      <p class="role">Display — Outfit 800</p>
+      <p class="sample s-display">+14,2 % ROI en 1.284 picks</p>
+    </div>
+    <div class="spec">
+      <p class="role">Heading — Outfit 600</p>
+      <p class="sample s-heading">Real Madrid vs Barcelona · Over 2.5 goles</p>
+    </div>
+    <div class="spec">
+      <p class="role">Body — Inter 400</p>
+      <p class="sample s-body">Cada pick se publica con marca de tiempo anterior al inicio del evento, cuota de registro y cuota de cierre. El historial completo es accesible: mostramos la muestra entera, sin selección interesada.</p>
+    </div>
+    <div class="spec">
+      <p class="role">Data — JetBrains Mono 700 · tabular-nums</p>
+      <p class="sample s-data">2.10 &nbsp; 1.85 &nbsp; 3.40 &nbsp; +78,00 u &nbsp; −22,00 u</p>
+    </div>
+
+    <h3>Escala tipográfica (px)</h3>
+    <div class="scale-bars">
+      <span style="font-size:12px">12</span><span style="font-size:14px">14</span><span style="font-size:16px">16</span>
+      <span style="font-size:18px">18</span><span style="font-size:20px">20</span><span style="font-size:24px">24</span>
+      <span style="font-size:32px">32</span><span style="font-size:40px">40</span><span style="font-size:56px">56</span>
+    </div>
+  </section>
+
+  <!-- SPACING -->
+  <section id="spacing">
+    <p class="eyebrow">Fundamentos · Espaciado y forma</p>
+    <h2>Ritmo de 4px</h2>
+    <p class="section-note">Densidad 7/10 — cómoda para tocar sin desperdiciar espacio. Radios por rol, no un único radio estampado en todo.</p>
+    <div class="spacing">
+      <div class="r"><span class="tok">--space-1</span><span class="bar" style="width:4px"></span> 4px · icon-text</div>
+      <div class="r"><span class="tok">--space-2</span><span class="bar" style="width:8px"></span> 8px · interno de chips</div>
+      <div class="r"><span class="tok">--space-3</span><span class="bar" style="width:12px"></span> 12px · padding de celda</div>
+      <div class="r"><span class="tok">--space-4</span><span class="bar" style="width:16px"></span> 16px · padding de card</div>
+      <div class="r"><span class="tok">--space-6</span><span class="bar" style="width:24px"></span> 24px · separación de bloques</div>
+      <div class="r"><span class="tok">--space-8</span><span class="bar" style="width:32px"></span> 32px · gaps de grid</div>
+      <div class="r"><span class="tok">--space-12</span><span class="bar" style="width:48px"></span> 48px · secciones (app)</div>
+      <div class="r"><span class="tok">--space-16</span><span class="bar" style="width:64px"></span> 64px · secciones (landing)</div>
+    </div>
+    <h3>Radios</h3>
+    <div class="radii">
+      <div style="border-radius:6px">6 · input</div>
+      <div style="border-radius:10px">10 · botón</div>
+      <div style="border-radius:14px">14 · card</div>
+      <div style="border-radius:20px">20 · modal</div>
+      <div style="border-radius:999px">∞ · pill</div>
+    </div>
+  </section>
+
+  <!-- COMPONENTS -->
+  <section id="components">
+    <p class="eyebrow">Componentes · Núcleo del producto</p>
+    <h2>Pick Card</h2>
+    <p class="section-note">El objeto central. Fila meta con estado, evento, selección + mercado, fila de datos (cuota con movimiento, stake sobre 10, confianza) y pie con la hora de publicación y la cuota de cierre. Sin nombre de autor por card: hay un solo tipster. El borde izquierdo codifica el resultado.</p>
+    <div class="gallery">
+      <article class="pick pick--featured" data-status="pending">
+        <div class="meta"><span class="sport"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18M3.5 9h17M3.5 15h17"/></svg> LaLiga</span><time>hace 2 h</time></div>
+        <div class="event">Real Madrid vs Barcelona</div>
+        <div class="sel">Mercado: <b>Más de 2.5 goles</b></div>
+        <div class="data">
+          <span class="odds"><span class="up" aria-hidden="true">▲</span>2.10 <span class="sr-only">cuota subió</span></span>
+          <span class="stake">Stake 7/10</span>
+          <span class="meter" aria-label="Confianza: alta"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+        </div>
+        <div class="foot"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg> Publicado 20:15 · antes del inicio <span class="badge badge--pending" style="margin-left:auto"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Pendiente</span></div>
+      </article>
+
+      <article class="pick" data-status="win">
+        <div class="meta"><span class="sport"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18M3.5 9h17M3.5 15h17"/></svg> NBA</span><time>ayer</time></div>
+        <div class="event">Celtics vs Nuggets</div>
+        <div class="sel">Mercado: <b>Hándicap Celtics −5.5</b></div>
+        <div class="data">
+          <span class="odds">1.91</span>
+          <span class="stake">Stake 5/10</span>
+          <span class="meter" aria-label="Confianza: media"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+        </div>
+        <div class="foot"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg> Cierre 1.85 · cogida a 1.91 <span class="badge badge--win" style="margin-left:auto"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Acierto +4.55 u</span></div>
+      </article>
+
+      <article class="pick" data-status="loss">
+        <div class="meta"><span class="sport"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18M3.5 9h17M3.5 15h17"/></svg> ATP</span><time>2 días</time></div>
+        <div class="event">Alcaraz vs Sinner</div>
+        <div class="sel">Mercado: <b>Alcaraz gana 3-1</b></div>
+        <div class="data">
+          <span class="odds"><span class="down" aria-hidden="true">▼</span>3.40</span>
+          <span class="stake">Stake 3/10</span>
+          <span class="meter" aria-label="Confianza: baja"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+        </div>
+        <div class="foot"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg> Cierre 3.60 · cogida a 3.40 <span class="badge badge--loss" style="margin-left:auto"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg> Fallo −3.00 u</span></div>
+      </article>
+    </div>
+
+    <h3>Badges de estado</h3>
+    <div class="badge-set">
+      <span class="badge badge--win"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Acierto</span>
+      <span class="badge badge--loss"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg> Fallo</span>
+      <span class="badge badge--push"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg> Nulo</span>
+      <span class="badge badge--pending"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Pendiente</span>
+      <span class="badge badge--vip"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 8 4.5 3L12 5l4.5 6L21 8l-1.8 10H4.8z"/></svg> VIP</span>
+    </div>
+
+    <h3>Botones</h3>
+    <div class="btn-row">
+      <button class="btn btn-primary cta" type="button">Ver picks gratis</button>
+      <button class="btn btn-primary" type="button">Suscribirse</button>
+      <button class="btn btn-ghost" type="button">Seguir</button>
+      <button class="btn btn-ghost btn-sm" type="button">Filtrar</button>
+      <button class="btn btn-primary" type="button" disabled>Enviando…</button>
+    </div>
+
+    <h3>Medidor de confianza</h3>
+    <p class="section-note" style="margin-bottom:14px">La confianza no es un resultado: relleno en azul de marca, nunca verde/rojo. Siempre con etiqueta de texto.</p>
+    <div class="conf">
+      <span class="bars" role="meter" aria-valuemin="0" aria-valuemax="5" aria-valuenow="4" aria-label="Confianza: alta"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+      <span class="lbl">Confianza alta</span>
+    </div>
+  </section>
+
+  <!-- KPI + AUTHORITY -->
+  <section id="metrics">
+    <p class="eyebrow">Componentes · Datos y confianza</p>
+    <h2>KPI tile y cabecera de autoridad</h2>
+    <p class="section-note">Regla dura: ningún KPI sin <b>periodo</b> y sin <b>tamaño de muestra</b>. Un % de acierto sin número de apuestas no se muestra.</p>
+    <div class="gallery">
+      <div class="kpi">
+        <div class="k-top"><span>ROI</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--win)"><path d="M3 17 9 11l4 4 8-8M15 4h6v6"/></svg></div>
+        <div class="k-val pos">+14,2 %</div>
+        <svg class="k-spark" viewBox="0 0 120 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,30 15,28 30,31 45,22 60,24 75,15 90,17 105,8 120,6" fill="none" stroke="var(--win)" stroke-width="2"/></svg>
+        <div class="k-ctx">Últimos 90 días · 1.284 picks · yield 6,1 %</div>
+      </div>
+      <div class="kpi">
+        <div class="k-top"><span>Beneficio</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" style="color:var(--win)"><path d="M3 17 9 11l4 4 8-8M15 4h6v6"/></svg></div>
+        <div class="k-val pos">+78,0 u</div>
+        <svg class="k-spark" viewBox="0 0 120 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,32 12,20 24,30 36,33 48,26 60,18 72,20 84,12 96,9 108,6 120,4" fill="none" stroke="var(--win)" stroke-width="2"/></svg>
+        <div class="k-ctx">9 meses · drawdown máx −22,0 u</div>
+      </div>
+      <div class="kpi">
+        <div class="k-top"><span>Racha</span><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 10l7-7 7 7"/></svg></div>
+        <div class="k-val">4 W</div>
+        <svg class="k-spark" viewBox="0 0 120 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="0,24 24,26 48,14 72,18 96,10 120,12" fill="none" stroke="var(--primary)" stroke-width="2"/></svg>
+        <div class="k-ctx">Aciertos consecutivos · 68 % últimos 30</div>
+      </div>
+    </div>
+
+    <h3>Cabecera de autoridad</h3>
+    <p class="section-note" style="margin-bottom:16px">Hay <b>un solo tipster</b> (tú). No es una card repetible ni un marketplace: es la franja de credibilidad del sitio, con foto real, historial auditado y una línea de metodología. Nunca botón “Seguir” — la relación es suscripción al canal.</p>
+    <article class="tipster">
+      <div class="t-head">
+        <span class="t-av" aria-hidden="true"></span>
+        <div style="flex:1 1 200px">
+          <div class="t-name">FamilyPicks
+            <svg class="ic verified" viewBox="0 0 24 24" aria-label="Historial auditado y público desde marzo 2024"><path d="M12 3l2.5 1.7 3-.3 1 2.8 2.5 1.7-1 2.8 1 2.8-2.5 1.7-1 2.8-3-.3L12 21l-2.5-1.7-3 .3-1-2.8L3 13.3l1-2.8-1-2.8 2.5-1.7 1-2.8 3 .3z"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <div class="t-sub">Historial auditado y público desde marzo 2024</div>
+        </div>
+        <button class="btn btn-primary btn-sm" type="button" style="margin-left:auto">Suscribirse</button>
+      </div>
+      <p class="t-method">Value betting en fútbol europeo y NBA. Stakes 1–10, cuota de cierre registrada en Pinnacle. Sin martingalas ni “combinadas seguras”.</p>
+      <div class="t-stats">
+        <div><span class="v pos">+14,2 %</span><span class="l">ROI</span></div>
+        <div><span class="v">6,1 %</span><span class="l">Yield</span></div>
+        <div><span class="v">54 %</span><span class="l">Acierto</span></div>
+        <div><span class="v">1.284</span><span class="l">Picks</span></div>
+        <div><span class="v">9 m</span><span class="l">Periodo</span></div>
+        <div><span class="v">4 W</span><span class="l">Racha</span></div>
+      </div>
+    </article>
+  </section>
+
+  <!-- RESULTS TABLE -->
+  <section id="results">
+    <p class="eyebrow">Componentes · Historial</p>
+    <h2>Tabla de resultados</h2>
+    <p class="section-note">Ordenable (<span class="num">aria-sort</span> en la columna activa), scroll horizontal contenido, y por debajo de 768px colapsa a una card por pick. Resumen de P&amp;L fijo encima.</p>
+    <div class="tbl-summary">
+      <span>P&amp;L total <b class="pos" style="color:var(--win)">+78,00 u</b></span>
+      <span>ROI <b>+14,2 %</b></span>
+      <span>Apuestas <b>1.284</b></span>
+      <span>Racha <b>4 W</b></span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col" aria-sort="descending">Fecha</th>
+            <th scope="col">Evento</th>
+            <th scope="col">Selección</th>
+            <th scope="col" style="text-align:right">Cuota</th>
+            <th scope="col" style="text-align:right">Stake</th>
+            <th scope="col" style="text-align:right">Beneficio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-r="win">
+            <td class="num">02 sep</td><td>Celtics – Nuggets</td><td>Hándicap −5.5</td>
+            <td class="n">1.91</td><td class="n">5,00</td><td class="n"><span class="pos">+4,55</span></td>
+          </tr>
+          <tr data-r="loss">
+            <td class="num">01 sep</td><td>Alcaraz – Sinner</td><td>Alcaraz 3-1</td>
+            <td class="n">3.40</td><td class="n">3,00</td><td class="n"><span class="neg">−3,00</span></td>
+          </tr>
+          <tr data-r="win">
+            <td class="num">31 ago</td><td>Madrid – Betis</td><td>Más de 2.5</td>
+            <td class="n">1.80</td><td class="n">6,00</td><td class="n"><span class="pos">+4,80</span></td>
+          </tr>
+          <tr data-r="push">
+            <td class="num">30 ago</td><td>Inter – Milan</td><td>Hándicap −1</td>
+            <td class="n">2.05</td><td class="n">4,00</td><td class="n">0,00</td>
+          </tr>
+          <tr data-r="win">
+            <td class="num">29 ago</td><td>Lakers – Warriors</td><td>Más de 224.5</td>
+            <td class="n">1.95</td><td class="n">5,00</td><td class="n"><span class="pos">+4,75</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- BANKROLL CHART -->
+  <section id="chart">
+    <p class="eyebrow">Componentes · Visualización</p>
+    <h2>Gráfica de bankroll</h2>
+    <p class="section-note">Unidades acumuladas en el tiempo. Área verde sobre 0, roja por debajo — con patrón además de color. Línea 0 marcada. Accesible por teclado; alternativa en texto siempre presente.</p>
+    <figure class="chart-card" style="margin:0">
+      <svg viewBox="0 0 720 300" role="img" aria-label="Evolución del bankroll: de 0 a +78 unidades en 12 meses, con un drawdown máximo de −22 unidades entre noviembre y diciembre.">
+        <defs>
+          <pattern id="hatch" width="6" height="6" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+            <line x1="0" y1="0" x2="0" y2="6" stroke="var(--loss)" stroke-width="1.4" opacity="0.5"/>
+          </pattern>
+        </defs>
+        <!-- gridlines -->
+        <g stroke="var(--grid-line)" stroke-width="1">
+          <line x1="52" y1="30" x2="704" y2="30"/>
+          <line x1="52" y1="86" x2="704" y2="86"/>
+          <line x1="52" y1="142" x2="704" y2="142"/>
+          <line x1="52" y1="198" x2="704" y2="198"/>
+          <line x1="52" y1="254" x2="704" y2="254"/>
+        </g>
+        <!-- y labels -->
+        <g fill="var(--muted)" font-family="JetBrains Mono, monospace" font-size="11" text-anchor="end">
+          <text x="44" y="34">+90</text>
+          <text x="44" y="90">+55</text>
+          <text x="44" y="146">+20</text>
+          <text x="44" y="202">−15</text>
+          <text x="44" y="258">−50</text>
+        </g>
+        <!-- zero line -->
+        <line x1="52" y1="166.9" x2="704" y2="166.9" stroke="var(--text)" stroke-width="1.25" stroke-dasharray="2 3" opacity="0.55"/>
+        <text x="708" y="170" fill="var(--muted)" font-family="JetBrains Mono, monospace" font-size="11">0 u</text>
+        <!-- areas + line drawn by script to keep coords honest -->
+        <g id="chartPlot"></g>
+        <!-- x labels -->
+        <g fill="var(--muted)" font-family="Inter, sans-serif" font-size="11" text-anchor="middle">
+          <text x="52" y="284">Oct</text>
+          <text x="170" y="284">Dic</text>
+          <text x="289" y="284">Feb</text>
+          <text x="407" y="284">Abr</text>
+          <text x="526" y="284">Jun</text>
+          <text x="645" y="284">Ago</text>
+        </g>
+      </svg>
+      <figcaption>De 0 a <b style="color:var(--win)">+78 u</b> en 12 meses · drawdown máximo <b style="color:var(--loss)">−22 u</b> (nov–dic) · 1.284 apuestas. <a href="#results">Ver histórico completo</a>.</figcaption>
+    </figure>
+  </section>
+
+  <!-- PLANS + AGE GATE -->
+  <section id="commerce">
+    <p class="eyebrow">Componentes · Conversión</p>
+    <h2>Planes y verificación de edad</h2>
+    <p class="section-note">Los planes se diferencian por <b>acceso a los picks</b>, no por tipster (que es uno). Columna recomendada con etiqueta real (“Más elegido”), precio con IVA incluido y cancelación en dos clics. Sin auto-renovación oculta, sin urgencia falsa.</p>
+    <div class="plans">
+      <div class="plan">
+        <div class="p-name">Gratis</div>
+        <div class="p-price">0 €</div>
+        <ul><li>Picks con 24 h de retraso</li><li>1 deporte</li><li>Track record completo visible</li></ul>
+        <button class="btn btn-ghost btn-sm" type="button">Empezar</button>
+      </div>
+      <div class="plan plan--rec">
+        <div class="p-name">Premium <span class="tag">Más elegido</span></div>
+        <div class="p-price">14 € <small>/mes · IVA incl.</small></div>
+        <ul><li>Todos los picks en tiempo real</li><li>Todos los deportes y mercados</li><li>Alertas por email</li></ul>
+        <button class="btn btn-primary btn-sm" type="button">Suscribirse</button>
+      </div>
+      <div class="plan">
+        <div class="p-name">VIP</div>
+        <div class="p-price">39 € <small>/mes · IVA incl.</small></div>
+        <ul><li>Todo Premium + alertas push y Telegram</li><li>Picks de stake alto y valores especiales</li><li>Cuota de cierre registrada</li></ul>
+        <button class="btn btn-ghost btn-sm" type="button">Suscribirse</button>
+      </div>
+    </div>
+
+    <h3>Age gate (primera visita, bloqueante)</h3>
+    <div class="agegate">
+      <svg class="ic ic-lg" viewBox="0 0 24 24" aria-hidden="true" style="stroke:var(--pending); margin-bottom:8px"><path d="M12 3 3 7v6c0 5 3.5 8 9 9 5.5-1 9-4 9-9V7z"/><path d="M12 8v5M12 16h.01"/></svg>
+      <h4>Debes tener 18 años o más</h4>
+      <p>FamilyPicks ofrece contenido sobre apuestas deportivas. Al continuar confirmas que eres mayor de edad en tu jurisdicción.</p>
+      <div class="g-actions">
+        <button class="btn btn-primary btn-sm" type="button">Tengo 18 o más</button>
+        <button class="btn btn-ghost btn-sm" type="button">Salir</button>
+      </div>
+      <p style="margin-top:14px; margin-bottom:0"><a href="#responsible">Juega con responsabilidad</a></p>
+    </div>
+  </section>
+
+  <!-- DO / DONT -->
+  <section id="rules">
+    <p class="eyebrow">Reglas · Aplicar en cada pantalla</p>
+    <h2>Sí / No</h2>
+    <div class="dd">
+      <div class="col do">
+        <h4><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Hacer</h4>
+        <ul>
+          <li>Resultado con color <b>+ icono + etiqueta</b> siempre.</li>
+          <li>Todo KPI con periodo y número de apuestas.</li>
+          <li>Cifras con <span class="num">tabular-nums</span> y separador de miles.</li>
+          <li>Un solo CTA primario por vista.</li>
+          <li>Foco visible de 2px en todo lo interactivo.</li>
+          <li>Cuota de registro y de cierre en cada pick.</li>
+        </ul>
+      </div>
+      <div class="col dont">
+        <h4><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg> Evitar</h4>
+        <ul>
+          <li>Rojo o verde como color de marca.</li>
+          <li>Lenguaje de marketplace: “sigue a tus tipsters”, ranking, autor en cada pick. Hay uno.</li>
+          <li>% de acierto sin tamaño de muestra; ROI sin periodo.</li>
+          <li>Emojis como iconos · mezclar sets de iconos.</li>
+          <li>Resultado comunicado solo por color.</li>
+          <li>Hover que desplaza el layout; cambios instantáneos.</li>
+          <li>“Pick 100 % seguro”, cuentas atrás y plazas falsas.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESPONSIBLE -->
+  <section id="responsible">
+    <p class="eyebrow">Cumplimiento · Juego responsable</p>
+    <h2>Parte del sistema, no un añadido</h2>
+    <div class="callout">
+      <b>Disclaimer estándar</b> (landing, ficha de tipster y checkout):<br>
+      “Las predicciones no garantizan resultados. Apostar conlleva riesgo de pérdida económica. Juega solo con dinero que puedas permitirte perder.”
+    </div>
+    <ul style="color:var(--muted); font-size:14px; line-height:1.7; margin-top:18px; padding-left:20px">
+      <li>Age gate 18+ bloqueante en la primera visita, guardado en <span class="num">localStorage</span>.</li>
+      <li>Footer de cada página: “18+ · Juega con responsabilidad” + enlace a recurso de ayuda + información de autoexclusión.</li>
+      <li>Histórico completo siempre accesible: sin selección interesada de resultados.</li>
+      <li>Enlaces a casas de apuestas, si los hay, marcados como publicidad.</li>
+      <li>Suscripciones: precio con impuestos, renovación clara, baja en dos clics.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <div class="rg">
+      <span class="badge">18+</span>
+      <span>Juega con responsabilidad</span>
+      <span aria-hidden="true">·</span>
+      <a href="#responsible">Recursos de ayuda</a>
+      <span aria-hidden="true">·</span>
+      <a href="#responsible">Autoexclusión</a>
+    </div>
+    <p style="margin:0">FamilyPicks Design System · v1 · Las predicciones no garantizan resultados. Apostar conlleva riesgo de pérdida económica.</p>
+  </footer>
+</div>
+
+<script>
+  // theme toggle — three-state aware
+  (function(){
+    var root = document.documentElement, btn = document.getElementById('themeToggle'), lbl = document.getElementById('themeLabel');
+    function current(){
+      var attr = root.getAttribute('data-theme');
+      if (attr) return attr;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    function sync(){ lbl.textContent = current() === 'dark' ? 'Oscuro' : 'Claro'; }
+    try { var saved = localStorage.getItem('fp-theme'); if (saved) root.setAttribute('data-theme', saved); } catch(e){}
+    sync();
+    btn.addEventListener('click', function(){
+      var next = current() === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('fp-theme', next); } catch(e){}
+      sync();
+    });
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', sync);
+  })();
+
+  // bankroll chart — cumulative units, drawn to one honest scale
+  (function(){
+    var data = [0, 8, -4, -14, -6, 7, 21, 16, 34, 44, 55, 63, 78]; // 13 month-ends, Oct → Oct
+    var L = 52, R = 704, T = 30, B = 254;           // plot bounds
+    var vMax = 90, vMin = -50;
+    var x = function(i){ return L + i * (R - L) / (data.length - 1); };
+    var y = function(v){ return T + (vMax - v) / (vMax - vMin) * (B - T); };
+    var zeroY = y(0);
+    var linePts = data.map(function(v,i){ return x(i) + ',' + y(v).toFixed(1); }).join(' ');
+    // split area into positive (green) and negative (hatched red) regions via clip at zero
+    var areaPath = 'M' + x(0) + ',' + zeroY + ' L' + data.map(function(v,i){ return x(i) + ',' + y(v).toFixed(1); }).join(' L') + ' L' + x(data.length-1) + ',' + zeroY + ' Z';
+    var g = document.getElementById('chartPlot');
+    g.innerHTML =
+      '<clipPath id="above"><rect x="'+L+'" y="'+T+'" width="'+(R-L)+'" height="'+(zeroY-T)+'"/></clipPath>' +
+      '<clipPath id="below"><rect x="'+L+'" y="'+zeroY+'" width="'+(R-L)+'" height="'+(B-zeroY)+'"/></clipPath>' +
+      '<path d="'+areaPath+'" fill="var(--win)" fill-opacity="0.16" clip-path="url(#above)"/>' +
+      '<path d="'+areaPath+'" fill="url(#hatch)" clip-path="url(#below)"/>' +
+      '<polyline points="'+linePts+'" fill="none" stroke="var(--win)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '<circle cx="'+x(data.length-1)+'" cy="'+y(78)+'" r="4.5" fill="var(--win)"/>' +
+      '<text x="'+(x(data.length-1)-8)+'" y="'+(y(78)-10)+'" text-anchor="end" fill="var(--win)" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">+78 u</text>' +
+      '<circle cx="'+x(3)+'" cy="'+y(-14)+'" r="4" fill="var(--loss)"/>' +
+      '<text x="'+(x(3)+8)+'" y="'+(y(-14)+16)+'" fill="var(--loss)" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">−14 u</text>';
+  })();
+</script>

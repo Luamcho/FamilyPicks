@@ -1,0 +1,460 @@
+<title>Picks de hoy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#0B0F1A; --surface:#141A28; --surface-2:#1B2333; --border:#26303F;
+    --text:#F1F5F9; --muted:#94A3B8; --faint:#5B6676;
+    --primary:#0EA5E9; --primary-hover:#38BDF8; --on-primary:#04121C; --ring:#7DD3FC;
+    --win:#4ADE80; --loss:#F87171; --push:#CBD5E1; --pending:#FBBF24;
+    --win-solid:#22C55E; --loss-solid:#EF4444;
+    --win-bg:rgba(34,197,94,.15); --loss-bg:rgba(239,68,68,.15);
+    --push-bg:rgba(148,163,184,.15); --pending-bg:rgba(245,158,11,.15);
+    --shadow-md:0 4px 14px rgba(0,0,0,.45);
+    --glow:0 0 0 1px rgba(14,165,233,.4), 0 10px 30px rgba(14,165,233,.16);
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#F5F7FB; --surface:#FFFFFF; --surface-2:#EEF2F7; --border:#DCE3EC;
+      --text:#0E1726; --muted:#546174; --faint:#8A97A8;
+      --primary:#0369A1; --primary-hover:#0284C7; --on-primary:#FFFFFF; --ring:#38BDF8;
+      --win:#15803D; --loss:#DC2626; --push:#64748B; --pending:#B45309;
+      --win-solid:#16A34A; --loss-solid:#DC2626;
+      --win-bg:rgba(22,163,74,.12); --loss-bg:rgba(220,38,38,.10);
+      --push-bg:rgba(100,116,139,.12); --pending-bg:rgba(180,83,9,.12);
+      --shadow-md:0 4px 14px rgba(15,23,42,.10);
+      --glow:0 0 0 1px rgba(3,105,161,.35), 0 10px 30px rgba(3,105,161,.14);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#F5F7FB; --surface:#FFFFFF; --surface-2:#EEF2F7; --border:#DCE3EC;
+    --text:#0E1726; --muted:#546174; --faint:#8A97A8;
+    --primary:#0369A1; --primary-hover:#0284C7; --on-primary:#FFFFFF; --ring:#38BDF8;
+    --win:#15803D; --loss:#DC2626; --push:#64748B; --pending:#B45309;
+    --win-solid:#16A34A; --loss-solid:#DC2626;
+    --win-bg:rgba(22,163,74,.12); --loss-bg:rgba(220,38,38,.10);
+    --push-bg:rgba(100,116,139,.12); --pending-bg:rgba(180,83,9,.12);
+    --shadow-md:0 4px 14px rgba(15,23,42,.10);
+    --glow:0 0 0 1px rgba(3,105,161,.35), 0 10px 30px rgba(3,105,161,.14);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B0F1A; --surface:#141A28; --surface-2:#1B2333; --border:#26303F;
+    --text:#F1F5F9; --muted:#94A3B8; --faint:#5B6676;
+    --primary:#0EA5E9; --primary-hover:#38BDF8; --on-primary:#04121C; --ring:#7DD3FC;
+    --win:#4ADE80; --loss:#F87171; --push:#CBD5E1; --pending:#FBBF24;
+    --win-solid:#22C55E; --loss-solid:#EF4444;
+    --win-bg:rgba(34,197,94,.15); --loss-bg:rgba(239,68,68,.15);
+    --push-bg:rgba(148,163,184,.15); --pending-bg:rgba(245,158,11,.15);
+    --shadow-md:0 4px 14px rgba(0,0,0,.45);
+    --glow:0 0 0 1px rgba(14,165,233,.4), 0 10px 30px rgba(14,165,233,.16);
+  }
+
+  *{box-sizing:border-box}
+  @media (prefers-reduced-motion: reduce){ *{animation-duration:.001ms!important;transition-duration:.001ms!important} }
+  body{margin:0; background:var(--bg); color:var(--text); font:400 15px/1.55 "Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif; -webkit-font-smoothing:antialiased}
+  .num{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace; font-variant-numeric:tabular-nums}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  button{font-family:inherit}
+  .ic{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+  /* ---------- app shell ---------- */
+  .app{display:grid; grid-template-columns:1fr; min-height:100dvh}
+  @media (min-width:1024px){ .app{grid-template-columns:248px 1fr} }
+
+  .sidebar{display:none}
+  @media (min-width:1024px){
+    .sidebar{display:flex; flex-direction:column; gap:4px; padding:20px 14px; border-right:1px solid var(--border); position:sticky; top:0; height:100dvh; background:var(--surface)}
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-family:"Outfit",sans-serif; font-weight:800; font-size:18px; letter-spacing:-.01em; padding:6px 10px 18px}
+  .brand .dot{width:11px;height:11px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 4px color-mix(in srgb,var(--primary) 22%,transparent)}
+  .nav-i{display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:10px; color:var(--muted); text-decoration:none; font:600 14px/1 "Outfit",sans-serif; cursor:pointer; border:1px solid transparent}
+  .nav-i:hover{background:var(--surface-2); color:var(--text)}
+  .nav-i[aria-current="page"]{background:color-mix(in srgb,var(--primary) 14%,transparent); color:var(--primary); border-color:color-mix(in srgb,var(--primary) 30%,transparent)}
+  .nav-i:focus-visible{outline:2px solid var(--ring); outline-offset:2px}
+  .side-foot{margin-top:auto; padding:12px 10px 4px; font-size:11px; color:var(--faint); line-height:1.5}
+  .side-foot b{color:var(--muted)}
+
+  main{min-width:0; padding-bottom:76px}
+  @media (min-width:1024px){ main{padding-bottom:0} }
+
+  .topbar{position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:14px; padding:14px 18px; background:color-mix(in srgb,var(--bg) 88%,transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--border)}
+  .topbar h1{font-family:"Outfit",sans-serif; font-weight:800; font-size:20px; letter-spacing:-.01em; margin:0}
+  .topbar .m-brand{display:flex; align-items:center; gap:8px; font-family:"Outfit",sans-serif; font-weight:800; font-size:16px}
+  .topbar h1{display:none}
+  @media (min-width:1024px){ .topbar .m-brand{display:none} .topbar h1{display:block} }
+  .plan{margin-left:auto; display:inline-flex; align-items:center; gap:8px; padding:6px 8px 6px 12px; border:1px solid var(--border); border-radius:999px; background:var(--surface); font:600 12px/1 "Outfit",sans-serif; color:var(--muted); white-space:nowrap}
+  .plan .up{background:var(--primary); color:var(--on-primary); border-radius:999px; padding:5px 10px; font-size:11px; cursor:pointer; border:0}
+  .plan .up:focus-visible{outline:2px solid var(--ring); outline-offset:2px}
+
+  .toolbar{display:flex; gap:10px; padding:14px 18px 0; flex-wrap:wrap; align-items:center}
+  .search{flex:1 1 200px; display:flex; align-items:center; gap:8px; padding:9px 12px; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--muted)}
+  .search input{border:0; background:transparent; color:var(--text); font:400 14px/1 "Inter",sans-serif; width:100%; outline:none}
+  .search:focus-within{border-color:var(--primary)}
+  .sort{display:flex; align-items:center; gap:8px; padding:9px 12px; background:var(--surface); border:1px solid var(--border); border-radius:10px; font:600 13px/1 "Outfit",sans-serif; color:var(--muted)}
+  .sort select{border:0; background:transparent; color:var(--text); font:600 13px/1 "Outfit",sans-serif; outline:none; cursor:pointer}
+  .sort:focus-within{border-color:var(--primary)}
+
+  .filters{padding:14px 18px 0}
+  .chips{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin}
+  .chips + .chips{margin-top:8px}
+  .chip{flex:none; padding:7px 13px; border-radius:999px; border:1px solid var(--border); background:var(--surface); color:var(--muted); font:600 13px/1 "Outfit",sans-serif; cursor:pointer; white-space:nowrap; transition:background .15s ease, color .15s ease, border-color .15s ease}
+  .chip:hover{color:var(--text)}
+  .chip[aria-pressed="true"]{background:color-mix(in srgb,var(--primary) 16%,transparent); color:var(--primary); border-color:color-mix(in srgb,var(--primary) 34%,transparent)}
+  .chip:focus-visible{outline:2px solid var(--ring); outline-offset:2px}
+  .chips-label{font:600 11px/1 "Outfit",sans-serif; letter-spacing:.1em; text-transform:uppercase; color:var(--faint); margin:0 0 7px}
+
+  .summary{display:flex; gap:10px; overflow-x:auto; padding:16px 18px 4px; scrollbar-width:none}
+  .summary::-webkit-scrollbar{display:none}
+  .s-tile{flex:none; min-width:118px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:11px 14px}
+  .s-tile .s-l{font:600 10px/1 "Outfit",sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--faint)}
+  .s-tile .s-v{font-family:"Outfit",sans-serif; font-weight:800; font-size:19px; letter-spacing:-.01em; margin-top:5px; font-variant-numeric:tabular-nums}
+  .s-tile .s-v.pos{color:var(--win)}
+
+  .feed{padding:18px}
+  .day{font-family:"Outfit",sans-serif; font-weight:700; font-size:13px; letter-spacing:.02em; color:var(--muted); margin:20px 2px 12px; display:flex; align-items:center; gap:10px}
+  .day::after{content:""; flex:1; height:1px; background:var(--border)}
+  .day:first-child{margin-top:0}
+  .grid{display:grid; grid-template-columns:1fr; gap:14px}
+  @media (min-width:640px){ .grid{grid-template-columns:repeat(2,1fr)} }
+  @media (min-width:1280px){ .grid{grid-template-columns:repeat(3,1fr)} }
+
+  /* ---------- pick card ---------- */
+  .pick{position:relative; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:15px; display:grid; gap:11px; overflow:hidden}
+  .pick:hover{border-color:color-mix(in srgb,var(--text) 16%,var(--border))}
+  .pick[data-status="win"]{border-left:3px solid var(--win-solid)}
+  .pick[data-status="loss"]{border-left:3px solid var(--loss-solid)}
+  .pick[data-status="push"]{border-left:3px solid var(--push)}
+  .pick[data-status="pending"]{border-left:3px solid var(--pending)}
+  .pk-meta{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted)}
+  .pk-meta .sport{display:inline-flex; align-items:center; gap:5px; color:var(--text); font-weight:600}
+  .pk-meta .sport .ic{width:14px;height:14px}
+  .pk-meta time{margin-left:auto; font-variant-numeric:tabular-nums}
+  .pk-event{font-family:"Outfit",sans-serif; font-weight:600; font-size:16px; line-height:1.25}
+  .pk-sel{font-size:13.5px; color:var(--muted)}
+  .pk-sel b{color:var(--text)}
+  .pk-data{display:flex; align-items:center; gap:9px; flex-wrap:wrap}
+  .odds{font:700 13px/1 "JetBrains Mono",monospace; font-variant-numeric:tabular-nums; padding:5px 9px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); display:inline-flex; align-items:center; gap:5px}
+  .odds .up{color:var(--win); font-size:9px} .odds .down{color:var(--loss); font-size:9px}
+  .stake{font:600 12px/1 "JetBrains Mono",monospace; color:var(--muted)}
+  .meter{display:flex; gap:3px; margin-left:auto}
+  .meter i{width:6px; height:15px; border-radius:2px; background:var(--border)}
+  .meter i.on{background:var(--primary)}
+  .badge{display:inline-flex; align-items:center; gap:4px; font:600 11px/1 "Inter",sans-serif; padding:5px 8px; border-radius:8px; text-transform:uppercase; letter-spacing:.03em}
+  .badge .ic{width:13px;height:13px;stroke-width:2.4}
+  .badge--win{color:var(--win); background:var(--win-bg)}
+  .badge--loss{color:var(--loss); background:var(--loss-bg)}
+  .badge--push{color:var(--push); background:var(--push-bg)}
+  .badge--pending{color:var(--pending); background:var(--pending-bg)}
+  .pk-foot{display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--muted); border-top:1px solid var(--border); padding-top:10px}
+  .pk-foot .verif{color:var(--primary); width:14px; height:14px}
+  .pk-foot .acts{margin-left:auto; display:flex; gap:4px}
+  .icbtn{display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer}
+  .icbtn:hover{color:var(--text); border-color:color-mix(in srgb,var(--text) 20%,var(--border))}
+  .icbtn:focus-visible{outline:2px solid var(--ring); outline-offset:2px}
+  .icbtn[aria-pressed="true"]{color:var(--primary); border-color:color-mix(in srgb,var(--primary) 40%,transparent)}
+  .icbtn .ic{width:15px;height:15px}
+
+  /* locked (free plan) */
+  .pick--locked .pk-inner{filter:blur(5px); pointer-events:none; user-select:none; opacity:.8}
+  .lock{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:9px; text-align:center; padding:18px; background:color-mix(in srgb,var(--surface) 62%,transparent)}
+  .lock .ic{width:22px;height:22px;color:var(--pending)}
+  .lock p{margin:0; font-size:13px; color:var(--text)}
+  .lock p b{font-family:"JetBrains Mono",monospace}
+  .lock small{color:var(--muted); font-size:11.5px}
+  .btn{font:600 13px/1 "Outfit",sans-serif; padding:9px 14px; border-radius:9px; border:1px solid transparent; cursor:pointer}
+  .btn:focus-visible{outline:2px solid var(--ring); outline-offset:2px}
+  .btn-primary{background:var(--primary); color:var(--on-primary)}
+  .btn-primary:hover{background:var(--primary-hover)}
+
+  .empty{display:none; text-align:center; padding:56px 20px; color:var(--muted)}
+  .empty.show{display:block}
+  .empty .ic{width:30px;height:30px;color:var(--faint); margin-bottom:12px}
+  .empty h3{font-family:"Outfit",sans-serif; font-weight:700; font-size:17px; color:var(--text); margin:0 0 6px}
+  .empty p{margin:0 0 16px; font-size:14px}
+
+  .rg-strip{border-top:1px solid var(--border); padding:16px 18px; display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; font-size:12px; color:var(--muted)}
+  .rg-strip .b18{font:700 11px/1 "Outfit",sans-serif; border:1px solid var(--border); border-radius:6px; padding:4px 6px; color:var(--text)}
+  .rg-strip a{color:var(--primary)}
+
+  /* mobile bottom nav */
+  .bottomnav{position:fixed; left:0; right:0; bottom:0; z-index:30; display:flex; justify-content:space-around; padding:8px 6px calc(8px + env(safe-area-inset-bottom)); background:var(--surface); border-top:1px solid var(--border)}
+  @media (min-width:1024px){ .bottomnav{display:none} }
+  .bn-i{display:flex; flex-direction:column; align-items:center; gap:3px; padding:5px 10px; border-radius:9px; color:var(--muted); text-decoration:none; font:600 10px/1 "Outfit",sans-serif; min-width:48px; min-height:44px; justify-content:center}
+  .bn-i .ic{width:20px;height:20px}
+  .bn-i[aria-current="page"]{color:var(--primary)}
+  .bn-i:focus-visible{outline:2px solid var(--ring); outline-offset:2px}
+</style>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot" aria-hidden="true"></span> FamilyPicks</div>
+    <nav aria-label="Principal" style="display:flex;flex-direction:column;gap:4px">
+      <a class="nav-i" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg> Inicio</a>
+      <a class="nav-i" href="#" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg> Picks</a>
+      <a class="nav-i" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg> Resultados</a>
+      <a class="nav-i" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V4M4 20h16M8 16v-5M13 16V8M18 16v-3"/></svg> Estadísticas</a>
+      <a class="nav-i" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.5 4-7 8-7s8 2.5 8 7"/></svg> Mi cuenta</a>
+    </nav>
+    <div class="side-foot"><b>Plan Gratis</b> · picks con 24 h de retraso.<br>18+ · Juega con responsabilidad.</div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <span class="m-brand"><span class="dot" aria-hidden="true" style="width:9px;height:9px;border-radius:50%;background:var(--primary);display:inline-block"></span> FamilyPicks</span>
+      <h1>Picks</h1>
+      <span class="plan">Plan Gratis <button class="up" type="button">Mejorar</button></span>
+    </div>
+
+    <div class="toolbar">
+      <label class="search">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="search" placeholder="Buscar equipo, liga o mercado" aria-label="Buscar picks">
+      </label>
+      <div class="sort">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6l1.5 1.5M3 12l1.5 1.5M3 18l1.5 1.5"/></svg>
+        <label for="sortSel" class="sr-only">Ordenar por</label>
+        <select id="sortSel">
+          <option value="recent">Más recientes</option>
+          <option value="odds">Mayor cuota</option>
+          <option value="conf">Mayor confianza</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="filters">
+      <p class="chips-label">Deporte</p>
+      <div class="chips" id="fSport" role="group" aria-label="Filtrar por deporte">
+        <button class="chip" data-v="all" aria-pressed="true" type="button">Todos</button>
+        <button class="chip" data-v="futbol" aria-pressed="false" type="button">Fútbol</button>
+        <button class="chip" data-v="nba" aria-pressed="false" type="button">NBA</button>
+        <button class="chip" data-v="tenis" aria-pressed="false" type="button">Tenis</button>
+        <button class="chip" data-v="nfl" aria-pressed="false" type="button">NFL</button>
+      </div>
+      <p class="chips-label" style="margin-top:14px">Estado</p>
+      <div class="chips" id="fStatus" role="group" aria-label="Filtrar por estado">
+        <button class="chip" data-v="all" aria-pressed="true" type="button">Todos</button>
+        <button class="chip" data-v="pending" aria-pressed="false" type="button">Pendientes</button>
+        <button class="chip" data-v="resolved" aria-pressed="false" type="button">Resueltos</button>
+      </div>
+    </div>
+
+    <div class="summary" aria-label="Resumen">
+      <div class="s-tile"><div class="s-l">Picks hoy</div><div class="s-v num">4</div></div>
+      <div class="s-tile"><div class="s-l">Pendientes</div><div class="s-v num">3</div></div>
+      <div class="s-tile"><div class="s-l">Resuelto ayer</div><div class="s-v num pos">+6,07 u</div></div>
+      <div class="s-tile"><div class="s-l">Racha</div><div class="s-v num">2 W</div></div>
+      <div class="s-tile"><div class="s-l">ROI · 90 días</div><div class="s-v num pos">+14,2 %</div></div>
+    </div>
+
+    <div class="feed" id="feed">
+      <div class="day" data-day="hoy">Hoy · 3 sept</div>
+      <div class="grid" data-grid="hoy">
+
+        <article class="pick" data-sport="futbol" data-status="pending" data-odds="2.10" data-conf="4" data-ts="2015">
+          <div class="pk-meta"><span class="sport"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18M3.5 9h17M3.5 15h17"/></svg> LaLiga</span><time>20:15</time></div>
+          <div class="pk-event">Real Madrid vs Barcelona</div>
+          <div class="pk-sel">Mercado: <b>Más de 2.5 goles</b></div>
+          <div class="pk-data">
+            <span class="odds"><span class="up" aria-hidden="true">▲</span>2.10 <span class="sr-only">cuota subió desde el registro</span></span>
+            <span class="stake">Stake 7/10</span>
+            <span class="meter" aria-label="Confianza: alta"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+          </div>
+          <div class="pk-foot"><svg class="ic verif" viewBox="0 0 24 24" aria-label="Publicado antes del inicio"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg> Publicado 18:40
+            <span class="acts"><button class="icbtn" type="button" aria-pressed="false" aria-label="Guardar pick"><svg class="ic" viewBox="0 0 24 24"><path d="M6 4h12v16l-6-4-6 4z"/></svg></button><button class="icbtn" type="button" aria-label="Compartir pick"><svg class="ic" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6 15.4 6.4M8.6 13.4l6.8 4.2"/></svg></button></span>
+          </div>
+        </article>
+
+        <article class="pick" data-sport="nba" data-status="pending" data-odds="1.91" data-conf="3" data-ts="1930">
+          <div class="pk-meta"><span class="sport"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3.5 12h17M12 3v18M6 5c3 3 3 11 0 14M18 5c-3 3-3 11 0 14"/></svg> NBA</span><time>02:00</time></div>
+          <div class="pk-event">LA Lakers vs Boston Celtics</div>
+          <div class="pk-sel">Mercado: <b>Hándicap Lakers +4.5</b></div>
+          <div class="pk-data">
+            <span class="odds">1.91</span>
+            <span class="stake">Stake 5/10</span>
+            <span class="meter" aria-label="Confianza: media"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+          </div>
+          <div class="pk-foot"><svg class="ic verif" viewBox="0 0 24 24" aria-label="Publicado antes del inicio"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg> Publicado 17:05
+            <span class="acts"><button class="icbtn" type="button" aria-pressed="false" aria-label="Guardar pick"><svg class="ic" viewBox="0 0 24 24"><path d="M6 4h12v16l-6-4-6 4z"/></svg></button><button class="icbtn" type="button" aria-label="Compartir pick"><svg class="ic" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6 15.4 6.4M8.6 13.4l6.8 4.2"/></svg></button></span>
+          </div>
+        </article>
+
+        <article class="pick pick--locked" data-sport="futbol" data-status="pending" data-odds="1.95" data-conf="4" data-ts="1830">
+          <div class="pk-inner" aria-hidden="true">
+            <div class="pk-meta"><span class="sport"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18M3.5 9h17M3.5 15h17"/></svg> Serie A</span><time>20:45</time></div>
+            <div class="pk-event">Nápoles vs Juventus</div>
+            <div class="pk-sel">Mercado: <b>Menos de 2.5 goles</b></div>
+            <div class="pk-data"><span class="odds">1.95</span><span class="stake">Stake 6/10</span></div>
+          </div>
+          <div class="lock">
+            <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+            <p>Se publica en <b>18 h</b> en tu plan</p>
+            <small>Premium lo recibe ahora, antes del cierre de cuota</small>
+            <button class="btn btn-primary" type="button">Verlo ahora con Premium</button>
+          </div>
+        </article>
+
+        <article class="pick" data-sport="tenis" data-status="pending" data-odds="1.87" data-conf="3" data-ts="1600">
+          <div class="pk-meta"><span class="sport"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M4 4c5 3 5 13 0 16M20 4c-5 3-5 13 0 16"/></svg> ATP Masters</span><time>16:00</time></div>
+          <div class="pk-event">Alcaraz vs Zverev</div>
+          <div class="pk-sel">Mercado: <b>Alcaraz −4.5 juegos</b></div>
+          <div class="pk-data">
+            <span class="odds"><span class="down" aria-hidden="true">▼</span>1.87 <span class="sr-only">cuota bajó desde el registro</span></span>
+            <span class="stake">Stake 4/10</span>
+            <span class="meter" aria-label="Confianza: media"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+          </div>
+          <div class="pk-foot"><svg class="ic verif" viewBox="0 0 24 24" aria-label="Publicado antes del inicio"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg> Publicado 11:20
+            <span class="acts"><button class="icbtn" type="button" aria-pressed="false" aria-label="Guardar pick"><svg class="ic" viewBox="0 0 24 24"><path d="M6 4h12v16l-6-4-6 4z"/></svg></button><button class="icbtn" type="button" aria-label="Compartir pick"><svg class="ic" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6 15.4 6.4M8.6 13.4l6.8 4.2"/></svg></button></span>
+          </div>
+        </article>
+
+      </div>
+
+      <div class="day" data-day="ayer">Ayer · 2 sept</div>
+      <div class="grid" data-grid="ayer">
+
+        <article class="pick" data-sport="futbol" data-status="win" data-odds="1.72" data-conf="4" data-ts="920">
+          <div class="pk-meta"><span class="sport"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18M3.5 9h17M3.5 15h17"/></svg> Premier League</span><time>ayer 21:00</time></div>
+          <div class="pk-event">Arsenal vs Tottenham</div>
+          <div class="pk-sel">Mercado: <b>Ambos marcan — Sí</b></div>
+          <div class="pk-data">
+            <span class="odds">1.72</span>
+            <span class="stake">Stake 6/10</span>
+            <span class="meter" aria-label="Confianza: alta"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>
+          </div>
+          <div class="pk-foot"><svg class="ic verif" viewBox="0 0 24 24" aria-label="Publicado antes del inicio"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg> Cierre 1.68
+            <span class="badge badge--win" style="margin-left:auto"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> +4,32 u</span>
+          </div>
+        </article>
+
+        <article class="pick" data-sport="nba" data-status="win" data-odds="1.95" data-conf="3" data-ts="880">
+          <div class="pk-meta"><span class="sport"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3.5 12h17M12 3v18M6 5c3 3 3 11 0 14M18 5c-3 3-3 11 0 14"/></svg> NBA</span><time>ayer 03:30</time></div>
+          <div class="pk-event">Denver Nuggets vs Phoenix Suns</div>
+          <div class="pk-sel">Mercado: <b>Más de 224.5 puntos</b></div>
+          <div class="pk-data">
+            <span class="odds">1.95</span>
+            <span class="stake">Stake 5/10</span>
+            <span class="meter" aria-label="Confianza: media"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+          </div>
+          <div class="pk-foot"><svg class="ic verif" viewBox="0 0 24 24" aria-label="Publicado antes del inicio"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg> Cierre 1.90
+            <span class="badge badge--win" style="margin-left:auto"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> +4,75 u</span>
+          </div>
+        </article>
+
+        <article class="pick" data-sport="nfl" data-status="push" data-odds="1.90" data-conf="3" data-ts="840">
+          <div class="pk-meta"><span class="sport"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="12" rx="9" ry="5.5"/><path d="M8 12h8M11 10v4M13 10v4"/></svg> NFL</span><time>ayer 02:20</time></div>
+          <div class="pk-event">Kansas City Chiefs vs Buffalo Bills</div>
+          <div class="pk-sel">Mercado: <b>Hándicap Chiefs −2.5</b></div>
+          <div class="pk-data">
+            <span class="odds">1.90</span>
+            <span class="stake">Stake 4/10</span>
+            <span class="meter" aria-label="Confianza: media"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span>
+          </div>
+          <div class="pk-foot"><svg class="ic verif" viewBox="0 0 24 24" aria-label="Publicado antes del inicio"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg> Cierre 1.90
+            <span class="badge badge--push" style="margin-left:auto"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg> Nulo · 0,00 u</span>
+          </div>
+        </article>
+
+        <article class="pick" data-sport="tenis" data-status="loss" data-odds="2.30" data-conf="2" data-ts="800">
+          <div class="pk-meta"><span class="sport"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M4 4c5 3 5 13 0 16M20 4c-5 3-5 13 0 16"/></svg> ATP 500</span><time>ayer 18:30</time></div>
+          <div class="pk-event">Sinner vs Medvedev</div>
+          <div class="pk-sel">Mercado: <b>Sinner gana 2-0</b></div>
+          <div class="pk-data">
+            <span class="odds"><span class="up" aria-hidden="true">▲</span>2.30</span>
+            <span class="stake">Stake 3/10</span>
+            <span class="meter" aria-label="Confianza: baja"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span>
+          </div>
+          <div class="pk-foot"><svg class="ic verif" viewBox="0 0 24 24" aria-label="Publicado antes del inicio"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="m9 12 2 2 4-4"/></svg> Cierre 2.45
+            <span class="badge badge--loss" style="margin-left:auto"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg> −3,00 u</span>
+          </div>
+        </article>
+
+      </div>
+
+      <div class="empty" id="empty">
+        <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <h3>Ningún pick con estos filtros</h3>
+        <p>Prueba a quitar filtros o cambia el deporte.</p>
+        <button class="btn btn-primary" type="button" id="resetF">Quitar filtros</button>
+      </div>
+    </div>
+
+    <div class="rg-strip">
+      <span class="b18">18+</span>
+      <span>Juega con responsabilidad</span>
+      <span aria-hidden="true">·</span>
+      <a href="#">Recursos de ayuda</a>
+      <span aria-hidden="true">·</span>
+      <span>Las predicciones no garantizan resultados. Apostar conlleva riesgo de pérdida económica.</span>
+    </div>
+  </main>
+
+  <nav class="bottomnav" aria-label="Principal (móvil)">
+    <a class="bn-i" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg> Inicio</a>
+    <a class="bn-i" href="#" aria-current="page"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg> Picks</a>
+    <a class="bn-i" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg> Resultados</a>
+    <a class="bn-i" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V4M4 20h16M8 16v-5M13 16V8M18 16v-3"/></svg> Stats</a>
+    <a class="bn-i" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.5 4-7 8-7s8 2.5 8 7"/></svg> Cuenta</a>
+  </nav>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement;
+  try{var s=localStorage.getItem('fp-theme'); if(s) root.setAttribute('data-theme',s);}catch(e){}
+
+  var state={sport:'all',status:'all'};
+  function group(id,key){
+    var g=document.getElementById(id);
+    g.addEventListener('click',function(e){
+      var b=e.target.closest('.chip'); if(!b) return;
+      g.querySelectorAll('.chip').forEach(function(c){c.setAttribute('aria-pressed', c===b?'true':'false');});
+      state[key]=b.dataset.v; apply();
+    });
+  }
+  group('fSport','sport'); group('fStatus','status');
+
+  function matches(card){
+    if(state.sport!=='all' && card.dataset.sport!==state.sport) return false;
+    if(state.status==='pending' && card.dataset.status!=='pending') return false;
+    if(state.status==='resolved' && card.dataset.status==='pending') return false;
+    return true;
+  }
+  function apply(){
+    var total=0;
+    document.querySelectorAll('.grid').forEach(function(grid){
+      var vis=0;
+      grid.querySelectorAll('.pick').forEach(function(c){
+        var ok=matches(c); c.hidden=!ok; if(ok){vis++; total++;}
+      });
+      var label=document.querySelector('.day[data-day="'+grid.dataset.grid+'"]');
+      if(label) label.hidden = vis===0;
+      grid.hidden = vis===0;
+    });
+    document.getElementById('empty').classList.toggle('show', total===0);
+  }
+
+  document.getElementById('sortSel').addEventListener('change',function(e){
+    var mode=e.target.value;
+    document.querySelectorAll('.grid').forEach(function(grid){
+      var cards=[].slice.call(grid.querySelectorAll('.pick'));
+      cards.sort(function(a,b){
+        if(mode==='odds') return parseFloat(b.dataset.odds)-parseFloat(a.dataset.odds);
+        if(mode==='conf') return (b.dataset.conf|0)-(a.dataset.conf|0);
+        return (b.dataset.ts|0)-(a.dataset.ts|0);
+      });
+      cards.forEach(function(c){grid.appendChild(c);});
+    });
+  });
+
+  document.getElementById('resetF').addEventListener('click',function(){
+    state={sport:'all',status:'all'};
+    document.querySelectorAll('.chips .chip').forEach(function(c){c.setAttribute('aria-pressed', c.dataset.v==='all'?'true':'false');});
+    apply();
+  });
+
+  document.querySelectorAll('.icbtn[aria-label="Guardar pick"]').forEach(function(b){
+    b.addEventListener('click',function(){ b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true'?'false':'true'); });
+  });
+})();
+</script>

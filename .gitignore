@@ -1,0 +1,19 @@
+# Supabase (CLI)
+supabase/.branches
+supabase/.temp
+supabase/.env
+
+# Entorno
+.env
+.env.local
+.env.*.local
+
+# Dependencias / build
+node_modules/
+dist/
+.next/
+out/
+
+# SO / editor
+.DS_Store
+Thumbs.db
