@@ -1,5 +1,8 @@
-import { CheckCircle2, CreditCard, ShieldCheck, LogOut, Bell } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { CheckCircle2, CreditCard, ShieldCheck, LogOut, Bell, LayoutDashboard } from "lucide-react";
 import { usePlan } from "@/context/PlanContext";
+import { useAuth } from "@/context/AuthContext";
+import { useIsAdmin } from "@/lib/auth";
 import { DEMO_MODE } from "@/lib/api";
 import type { PlanTier } from "@/lib/types";
 
@@ -15,10 +18,56 @@ const PLAN_DESC: Record<PlanTier, string> = {
 };
 
 export function Account() {
-  const { plan } = usePlan();
+  const { plan: demoPlan } = usePlan();
+  const { user, profile, loading, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
+  const nav = useNavigate();
+
+  if (!DEMO_MODE && loading) {
+    return <div className="page-pad" style={{ color: "var(--muted)" }}>Cargando…</div>;
+  }
+
+  if (!DEMO_MODE && !user) {
+    return (
+      <div className="page-pad content-narrow" style={{ maxWidth: 420, textAlign: "center", paddingTop: 60 }}>
+        <CreditCard aria-hidden style={{ color: "var(--primary)", width: 28, height: 28, marginBottom: 12 }} />
+        <h2 style={{ fontFamily: "var(--font-display)", margin: "0 0 8px" }}>No has iniciado sesión</h2>
+        <p style={{ color: "var(--muted)", fontSize: 14, margin: "0 0 20px" }}>
+          Entra o crea una cuenta gratis para ver tu plan y tus picks guardados.
+        </p>
+        <Link className="btn btn-primary" to="/entrar">
+          Entrar / crear cuenta
+        </Link>
+      </div>
+    );
+  }
+
+  const plan = DEMO_MODE ? demoPlan : (profile?.plan ?? "free");
+
+  async function handleSignOut() {
+    await signOut();
+    nav("/");
+  }
 
   return (
     <div className="page-pad content-narrow" style={{ display: "grid", gap: 18 }}>
+      {!DEMO_MODE && user && (
+        <section className="card" style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#0EA5E9,#6366F1)", flex: "none" }} />
+          <div style={{ flex: "1 1 200px" }}>
+            <div style={{ font: "700 15px/1 var(--font-display)" }}>
+              {profile?.display_name ?? user.email}
+            </div>
+            <div style={{ fontSize: 12.5, color: "var(--muted)", marginTop: 3 }}>{user.email}</div>
+          </div>
+          {isAdmin && (
+            <Link className="btn btn-ghost btn-sm" to="/admin">
+              <LayoutDashboard aria-hidden width={15} height={15} /> Panel del tipster
+            </Link>
+          )}
+        </section>
+      )}
+
       <section className="card" style={{ display: "grid", gap: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <CreditCard aria-hidden style={{ color: "var(--primary)" }} />
@@ -48,10 +97,7 @@ export function Account() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <ShieldCheck aria-hidden style={{ color: "var(--win)" }} width={18} height={18} />
           <span style={{ font: "600 14px/1 var(--font-display)" }}>Verificación de edad</span>
-          <span
-            className="badge badge--win"
-            style={{ marginLeft: "auto" }}
-          >
+          <span className="badge badge--win" style={{ marginLeft: "auto" }}>
             <CheckCircle2 aria-hidden /> Verificado 18+
           </span>
         </div>
@@ -84,7 +130,7 @@ export function Account() {
         className="btn btn-ghost"
         type="button"
         style={{ justifySelf: "start" }}
-        onClick={() => alert("Autenticación pendiente de conectar con Supabase.")}
+        onClick={DEMO_MODE ? () => alert("Autenticación pendiente en modo demo (sin Supabase conectado).") : handleSignOut}
       >
         <LogOut aria-hidden width={15} height={15} /> Cerrar sesión
       </button>

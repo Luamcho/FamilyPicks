@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ShieldAlert } from "lucide-react";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 const KEY = "fp-age-ok";
 
@@ -63,6 +64,9 @@ export function AgeGate() {
                 localStorage.setItem(KEY, "1");
               } catch {
                 /* noop */
+              }
+              if (isSupabaseConfigured && supabase) {
+                supabase.rpc("verify_age").then(() => {}, () => {});
               }
               setState("ok");
             }}

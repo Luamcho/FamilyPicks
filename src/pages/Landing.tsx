@@ -4,7 +4,8 @@ import { ShieldCheck, BarChart3, Check, Crown } from "lucide-react";
 import { BankrollChart } from "@/components/BankrollChart";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StatusBadge } from "@/components/bits";
-import { getBankroll, getSettledHistory, getStatsOverview } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import { DEMO_MODE, getBankroll, getSettledHistory, getStatsOverview } from "@/lib/api";
 import { count, monthsSince, odds, pct, units } from "@/lib/format";
 import type { BankrollPoint, Pick, StatsOverview } from "@/lib/types";
 
@@ -67,6 +68,7 @@ const PLANS = [
 ];
 
 export function Landing() {
+  const { user } = useAuth();
   const [stats, setStats] = useState<StatsOverview | null>(null);
   const [bankroll, setBankroll] = useState<BankrollPoint[] | null>(null);
   const [recent, setRecent] = useState<Pick[]>([]);
@@ -101,8 +103,11 @@ export function Landing() {
           </nav>
           <div className="nav-cta">
             <ThemeToggle />
-            <Link className="btn btn-ghost btn-sm ghost-link" to="/cuenta">
-              Entrar
+            <Link
+              className="btn btn-ghost btn-sm ghost-link"
+              to={!DEMO_MODE && user ? "/cuenta" : "/entrar"}
+            >
+              {!DEMO_MODE && user ? "Mi cuenta" : "Entrar"}
             </Link>
             <Link className="btn btn-primary btn-sm cta" to="/picks">
               Ver picks gratis

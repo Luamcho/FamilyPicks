@@ -10,6 +10,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { RgStrip, DemoBanner } from "./bits";
 import { DEMO_MODE } from "@/lib/api";
 import { usePlan } from "@/context/PlanContext";
+import { useAuth } from "@/context/AuthContext";
 import { useIsAdmin } from "@/lib/auth";
 import type { PlanTier } from "@/lib/types";
 
@@ -28,10 +29,12 @@ const TITLES: Record<string, string> = {
 };
 
 export function AppLayout() {
-  const { plan, setPlan } = usePlan();
+  const { plan: demoPlan, setPlan } = usePlan();
+  const { user, profile } = useAuth();
   const { pathname } = useLocation();
   const { isAdmin } = useIsAdmin();
   const title = TITLES[pathname] ?? "FamilyPicks";
+  const plan: PlanTier = DEMO_MODE ? demoPlan : (profile?.plan ?? "free");
 
   return (
     <div className="app-shell">
@@ -64,6 +67,15 @@ export function AppLayout() {
               <br />
             </>
           )}
+          {!DEMO_MODE && !user ? (
+            <>
+              <NavLink to="/entrar" style={{ color: "var(--primary)", fontWeight: 600 }}>
+                Entrar / crear cuenta →
+              </NavLink>
+              <br />
+              <br />
+            </>
+          ) : null}
           <b>Plan {planLabel(plan)}</b>
           {plan === "free" ? " · picks con 24 h de retraso." : " · picks en tiempo real."}
           <br />
@@ -112,6 +124,16 @@ export function AppLayout() {
                 <option value="vip">VIP</option>
               </select>
             </label>
+          )}
+          {!DEMO_MODE && (
+            <span className="plan-pill">
+              <span>{planLabel(plan)}</span>
+              {plan !== "vip" && (
+                <a className="up" href="/#planes">
+                  Mejorar
+                </a>
+              )}
+            </span>
           )}
           <ThemeToggle />
         </div>
