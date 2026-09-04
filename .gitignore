@@ -13,6 +13,8 @@ node_modules/
 dist/
 .next/
 out/
+*.tsbuildinfo
+.vercel
 
 # SO / editor
 .DS_Store

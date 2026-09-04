@@ -1,0 +1,140 @@
+/* FamilyPicks — design tokens. Oscuro por defecto, tema claro soportado.
+   Tres estados: sin data-theme (sistema), [data-theme="light"], [data-theme="dark"]. */
+
+:root {
+  --bg: #0b0f1a;
+  --surface: #141a28;
+  --surface-2: #1b2333;
+  --border: #26303f;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --faint: #5b6676;
+  --primary: #0ea5e9;
+  --primary-hover: #38bdf8;
+  --on-primary: #04121c;
+  --ring: #7dd3fc;
+  --win: #4ade80;
+  --loss: #f87171;
+  --push: #cbd5e1;
+  --pending: #fbbf24;
+  --vip: #facc15;
+  --win-solid: #22c55e;
+  --loss-solid: #ef4444;
+  --win-bg: rgba(34, 197, 94, 0.15);
+  --loss-bg: rgba(239, 68, 68, 0.15);
+  --push-bg: rgba(148, 163, 184, 0.15);
+  --pending-bg: rgba(245, 158, 11, 0.15);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --glow: 0 0 0 1px rgba(14, 165, 233, 0.4), 0 10px 30px rgba(14, 165, 233, 0.16);
+  --grid-line: rgba(148, 163, 184, 0.14);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --z-nav: 20;
+  --z-dropdown: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+  --z-agegate: 100;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface-2: #eef2f7;
+    --border: #dce3ec;
+    --text: #0e1726;
+    --muted: #546174;
+    --faint: #8a97a8;
+    --primary: #0369a1;
+    --primary-hover: #0284c7;
+    --on-primary: #ffffff;
+    --ring: #38bdf8;
+    --win: #15803d;
+    --loss: #dc2626;
+    --push: #64748b;
+    --pending: #b45309;
+    --vip: #a16207;
+    --win-solid: #16a34a;
+    --loss-solid: #dc2626;
+    --win-bg: rgba(22, 163, 74, 0.12);
+    --loss-bg: rgba(220, 38, 38, 0.1);
+    --push-bg: rgba(100, 116, 139, 0.12);
+    --pending-bg: rgba(180, 83, 9, 0.12);
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.1);
+    --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
+    --glow: 0 0 0 1px rgba(3, 105, 161, 0.35), 0 10px 30px rgba(3, 105, 161, 0.14);
+    --grid-line: rgba(71, 85, 105, 0.16);
+  }
+}
+
+:root[data-theme="light"] {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-2: #eef2f7;
+  --border: #dce3ec;
+  --text: #0e1726;
+  --muted: #546174;
+  --faint: #8a97a8;
+  --primary: #0369a1;
+  --primary-hover: #0284c7;
+  --on-primary: #ffffff;
+  --ring: #38bdf8;
+  --win: #15803d;
+  --loss: #dc2626;
+  --push: #64748b;
+  --pending: #b45309;
+  --vip: #a16207;
+  --win-solid: #16a34a;
+  --loss-solid: #dc2626;
+  --win-bg: rgba(22, 163, 74, 0.12);
+  --loss-bg: rgba(220, 38, 38, 0.1);
+  --push-bg: rgba(100, 116, 139, 0.12);
+  --pending-bg: rgba(180, 83, 9, 0.12);
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
+  --glow: 0 0 0 1px rgba(3, 105, 161, 0.35), 0 10px 30px rgba(3, 105, 161, 0.14);
+  --grid-line: rgba(71, 85, 105, 0.16);
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b0f1a;
+  --surface: #141a28;
+  --surface-2: #1b2333;
+  --border: #26303f;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --faint: #5b6676;
+  --primary: #0ea5e9;
+  --primary-hover: #38bdf8;
+  --on-primary: #04121c;
+  --ring: #7dd3fc;
+  --win: #4ade80;
+  --loss: #f87171;
+  --push: #cbd5e1;
+  --pending: #fbbf24;
+  --vip: #facc15;
+  --win-solid: #22c55e;
+  --loss-solid: #ef4444;
+  --win-bg: rgba(34, 197, 94, 0.15);
+  --loss-bg: rgba(239, 68, 68, 0.15);
+  --push-bg: rgba(148, 163, 184, 0.15);
+  --pending-bg: rgba(245, 158, 11, 0.15);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --glow: 0 0 0 1px rgba(14, 165, 233, 0.4), 0 10px 30px rgba(14, 165, 233, 0.16);
+  --grid-line: rgba(148, 163, 184, 0.14);
+}
