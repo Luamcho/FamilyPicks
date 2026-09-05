@@ -21,6 +21,7 @@ import { NotFound } from "@/pages/NotFound";
 import { AdminDashboard } from "@/pages/admin/Dashboard";
 import { AdminNewPick } from "@/pages/admin/NewPick";
 import { AdminPicks } from "@/pages/admin/AllPicks";
+import { AdminOdds } from "@/pages/admin/Odds";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -49,6 +50,7 @@ export default function App() {
               </Route>
               <Route path="/admin" element={<AdminLayout />}>
                 <Route index element={<AdminDashboard />} />
+                <Route path="cuotas" element={<AdminOdds />} />
                 <Route path="nuevo" element={<AdminNewPick />} />
                 <Route path="picks" element={<AdminPicks />} />
               </Route>

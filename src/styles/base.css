@@ -160,6 +160,20 @@ img {
   color: var(--pending);
   background: var(--pending-bg);
 }
+@keyframes fp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: fp-spin 0.9s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}
+
 .badge--ai {
   color: var(--primary);
   background: color-mix(in srgb, var(--primary) 15%, transparent);

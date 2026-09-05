@@ -1,9 +1,28 @@
 import { useMemo, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/components/Toast";
 import { createPick } from "@/lib/api";
 import { MOCK_SPORTS } from "@/lib/mock";
 import type { MarketCategory, PickSource } from "@/lib/types";
+
+/** ISO -> valor para <input type="datetime-local"> en la hora local del navegador. */
+function toDatetimeLocal(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+interface Prefill {
+  sport_slug?: string;
+  competition?: string;
+  event?: string;
+  market?: string;
+  market_category?: MarketCategory;
+  selection?: string;
+  odds?: number;
+  event_start_at?: string;
+}
 
 const MARKET_CATEGORIES: { v: MarketCategory; label: string }[] = [
   { v: "goals_lines", label: "Línea de goles / puntos" },
@@ -47,8 +66,24 @@ const empty: FormState = {
 
 export function AdminNewPick() {
   const nav = useNavigate();
+  const location = useLocation();
   const toast = useToast();
-  const [f, setF] = useState<FormState>(empty);
+  const prefill = (location.state as { prefill?: Prefill } | null)?.prefill;
+  const [f, setF] = useState<FormState>(() =>
+    prefill
+      ? {
+          ...empty,
+          sport_slug: prefill.sport_slug ?? empty.sport_slug,
+          competition: prefill.competition ?? "",
+          event: prefill.event ?? "",
+          market: prefill.market ?? "",
+          market_category: prefill.market_category ?? empty.market_category,
+          selection: prefill.selection ?? "",
+          odds: prefill.odds != null ? String(prefill.odds) : "",
+          event_start_at: prefill.event_start_at ? toDatetimeLocal(prefill.event_start_at) : "",
+        }
+      : empty,
+  );
   const [submitted, setSubmitted] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -111,6 +146,13 @@ export function AdminNewPick() {
           Se publica con la hora actual. La cuota de cierre se registra al liquidarlo.
         </p>
       </div>
+
+      {prefill && (
+        <div className="auth-error" style={{ background: "var(--win-bg)", color: "var(--win)" }}>
+          Datos precargados desde Cuotas en vivo. Revisa el mercado, pon tu stake y
+          confianza antes de publicar.
+        </div>
+      )}
 
       <form className="card" onSubmit={submit} noValidate style={{ display: "grid", gap: 16 }}>
         <div className="form-grid cols-2">

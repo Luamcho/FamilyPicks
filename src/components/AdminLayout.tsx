@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Link } from "react-router-dom";
-import { LayoutDashboard, PlusCircle, List, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, PlusCircle, List, Radar, ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useIsAdmin } from "@/lib/auth";
 import { DEMO_MODE } from "@/lib/api";
@@ -21,10 +21,9 @@ export function AdminLayout() {
         <h1 style={{ fontFamily: "var(--font-display)" }}>Panel restringido</h1>
         <p style={{ color: "var(--muted)" }}>
           El panel del tipster solo está disponible para la cuenta de administración.
-          Inicia sesión con esa cuenta o vuelve al sitio.
         </p>
-        <Link className="btn btn-ghost" to="/">
-          <ArrowLeft aria-hidden width={15} height={15} /> Volver al sitio
+        <Link className="btn btn-ghost" to="/entrar">
+          <ArrowLeft aria-hidden width={15} height={15} /> Entrar
         </Link>
       </div>
     );
@@ -33,7 +32,7 @@ export function AdminLayout() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <Link to="/" className="brand">
+        <Link to="/picks" className="brand">
           <span className="dot" aria-hidden />
           FamilyPicks
         </Link>
@@ -41,6 +40,9 @@ export function AdminLayout() {
         <nav aria-label="Panel">
           <NavLink to="/admin" end className={({ isActive }) => `nav-i${isActive ? " active" : ""}`}>
             <LayoutDashboard aria-hidden /> Resumen
+          </NavLink>
+          <NavLink to="/admin/cuotas" className={({ isActive }) => `nav-i${isActive ? " active" : ""}`}>
+            <Radar aria-hidden /> Cuotas
           </NavLink>
           <NavLink to="/admin/nuevo" className={({ isActive }) => `nav-i${isActive ? " active" : ""}`}>
             <PlusCircle aria-hidden /> Publicar pick
@@ -50,8 +52,8 @@ export function AdminLayout() {
           </NavLink>
         </nav>
         <div className="side-foot">
-          <Link to="/" style={{ color: "var(--muted)" }}>
-            ← Ver el sitio público
+          <Link to="/picks" style={{ color: "var(--muted)" }}>
+            ← Volver al feed
           </Link>
         </div>
       </aside>
@@ -74,6 +76,9 @@ export function AdminLayout() {
         <nav className="admin-mobnav" aria-label="Panel (móvil)">
           <NavLink to="/admin" end className={({ isActive }) => `chip${isActive ? " chip-on" : ""}`}>
             Resumen
+          </NavLink>
+          <NavLink to="/admin/cuotas" className={({ isActive }) => `chip${isActive ? " chip-on" : ""}`}>
+            Cuotas
           </NavLink>
           <NavLink to="/admin/nuevo" className={({ isActive }) => `chip${isActive ? " chip-on" : ""}`}>
             Publicar
