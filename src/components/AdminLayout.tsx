@@ -1,5 +1,5 @@
 import { NavLink, Outlet, Link } from "react-router-dom";
-import { LayoutDashboard, PlusCircle, List, Radar, ArrowLeft } from "lucide-react";
+import { LayoutDashboard, PlusCircle, List, Radar, Sparkles, ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useIsAdmin } from "@/lib/auth";
 import { DEMO_MODE } from "@/lib/api";
@@ -41,6 +41,9 @@ export function AdminLayout() {
           <NavLink to="/admin" end className={({ isActive }) => `nav-i${isActive ? " active" : ""}`}>
             <LayoutDashboard aria-hidden /> Resumen
           </NavLink>
+          <NavLink to="/admin/candidatos" className={({ isActive }) => `nav-i${isActive ? " active" : ""}`}>
+            <Sparkles aria-hidden /> Candidatos IA
+          </NavLink>
           <NavLink to="/admin/cuotas" className={({ isActive }) => `nav-i${isActive ? " active" : ""}`}>
             <Radar aria-hidden /> Cuotas
           </NavLink>
@@ -76,6 +79,9 @@ export function AdminLayout() {
         <nav className="admin-mobnav" aria-label="Panel (móvil)">
           <NavLink to="/admin" end className={({ isActive }) => `chip${isActive ? " chip-on" : ""}`}>
             Resumen
+          </NavLink>
+          <NavLink to="/admin/candidatos" className={({ isActive }) => `chip${isActive ? " chip-on" : ""}`}>
+            Candidatos
           </NavLink>
           <NavLink to="/admin/cuotas" className={({ isActive }) => `chip${isActive ? " chip-on" : ""}`}>
             Cuotas

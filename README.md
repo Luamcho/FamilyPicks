@@ -87,6 +87,48 @@ update public.profiles set role = 'admin'
 where id = (select id from auth.users where email = 'tu_email');
 ```
 
+## Automatización de picks (IA)
+
+Cada día, `/admin` puede generar picks automáticamente: busca hasta 10
+partidos por deporte de las ligas/torneos principales que juegan hoy (fútbol,
+baloncesto, tenis, fútbol americano), se queda solo con los que **Hard Rock
+Bet** cotiza, y le pide a Claude que elija los mejores picks entre esas cuotas
+reales. **No publica directo** — los deja en `/admin/candidatos` para que
+apruebes o descartes uno por uno; aprobar copia el pick a tu tabla real con
+`source = 'ai'`.
+
+Piezas:
+- `supabase/functions/generate-picks` — hace las llamadas a oddspapi.io y a la
+  API de Claude, valida la respuesta contra las cuotas reales (nunca inserta
+  algo que Claude "inventó") y guarda los candidatos.
+- `pick_candidates` (tabla) + `approve_pick_candidate` / `dismiss_pick_candidate`
+  (RPCs, solo admin) — la cola de revisión.
+- Un cron diario (`pg_cron` + `pg_net`, migración
+  `20260904160000_daily_picks_cron.sql`) llama a `generate-picks` a las 13:00
+  UTC. También hay un botón "Generar ahora" en `/admin/candidatos` para
+  correrlo manualmente.
+
+**Dos cosas que tienes que configurar tú (yo nunca manejo estas claves):**
+
+1. **`ANTHROPIC_API_KEY`** — Supabase → Project Settings → Edge Functions →
+   Secrets. Es la key de la API de Claude que usa `generate-picks` para elegir
+   los picks. Ya deberías tener `ODDS_API_KEY` puesta ahí desde antes; agrega
+   esta al lado.
+2. **Autenticación del cron** — para que `pg_cron` pueda llamar al edge
+   function sin que tú estés logueado, necesita tu `service_role` key guardada
+   en Supabase Vault (nunca en texto plano en una migración). Una sola vez, en
+   el SQL Editor de Supabase:
+   ```sql
+   select vault.create_secret('PEGA_AQUI_TU_SERVICE_ROLE_KEY', 'service_role_key');
+   ```
+   La `service_role` key está en Project Settings → API → `service_role`
+   (secret). Si alguna vez la rotas, vuelve a correr ese mismo comando (crea o
+   reemplaza el secreto `service_role_key`).
+
+Sin el paso 2, el cron diario falla silenciosamente (columna `Authorization`
+vacía); el botón manual "Generar ahora" **sí funciona sin ese paso**, porque
+usa tu sesión de admin en vez del cron.
+
 ## Juego responsable
 
 18+. Las predicciones no garantizan resultados; apostar conlleva riesgo de
