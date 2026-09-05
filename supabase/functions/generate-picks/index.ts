@@ -260,12 +260,19 @@ Reglas estrictas:
 Responde SOLO con JSON válido, sin texto extra, con esta forma exacta:
 {"picks":[{"ref":0,"market":"nombre del mercado","market_category":"moneyline","selection":"nombre de la opción elegida","odds":1.85,"stake":5,"confidence":3,"analysis":"..."}]}`;
 
+    // Algunas API keys (las "Admin"/organización, en vez de una key normal
+    // creada dentro de un workspace) exigen indicar el workspace aparte.
+    // Si el dueño puso el secret opcional ANTHROPIC_WORKSPACE_ID, se manda;
+    // si no, no se manda el header (comportamiento normal para una key ya
+    // scoped a un workspace).
+    const anthropicWorkspaceId = Deno.env.get("ANTHROPIC_WORKSPACE_ID");
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": anthropicKey,
         "anthropic-version": "2023-06-01",
         "content-type": "application/json",
+        ...(anthropicWorkspaceId ? { "anthropic-workspace-id": anthropicWorkspaceId } : {}),
       },
       body: JSON.stringify({
         model: "claude-sonnet-5",
