@@ -57,3 +57,41 @@ async function invoke<T>(body: Record<string, unknown>): Promise<T> {
 export async function rawOdds(path: string, query?: Record<string, string>): Promise<RawOddsResponse> {
   return invoke<RawOddsResponse>({ action: "raw", path, query });
 }
+
+export interface BookmakerMatch {
+  bookmakerName: string;
+  slug: string;
+  liveOdds: boolean | null;
+  cloneOf: string | null;
+}
+
+/** Busca una casa por nombre/slug sin traer las ~300+ casas de golpe. */
+export async function findBookmaker(query: string): Promise<{ count: number; bookmakers: BookmakerMatch[] }> {
+  return invoke({ action: "find_bookmaker", query });
+}
+
+export interface BookmakerMarketOutcome {
+  outcomeId: number;
+  outcomeName: string;
+  price: number | null;
+}
+export interface BookmakerMarket {
+  marketId: number;
+  marketName: string;
+  marketType: string | null;
+  handicap: number | null;
+  outcomes: BookmakerMarketOutcome[];
+}
+export interface BookmakerOddsResult {
+  event: string;
+  tournament: string | null;
+  startTime: string | null;
+  bookmaker: string;
+  markets: BookmakerMarket[];
+  note?: string;
+}
+
+/** Cuotas de una casa concreta para un partido, con nombres de mercado/resultado ya resueltos. */
+export async function getBookmakerOdds(bookmaker: string, fixtureId: string): Promise<BookmakerOddsResult> {
+  return invoke({ action: "bookmaker_odds", bookmaker, fixture_id: fixtureId });
+}
