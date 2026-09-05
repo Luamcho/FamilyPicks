@@ -1,19 +1,22 @@
 // ============================================================================
-// FamilyPicks — fetch-odds
+// FamilyPicks — fetch-odds (modo diagnóstico para oddspapi.io)
 //
-// Trae partidos y cuotas de The Odds API (theoddsapi.com) para que el admin
-// (o Claude, en tu nombre) elija qué picks tienen valor antes de publicarlos.
+// oddspapi.io identifica deportes/mercados/casas/equipos por ID numérico y
+// hay que resolverlos contra sus endpoints de referencia. Antes de construir
+// la integración final necesitamos ver una respuesta real, así que esta
+// versión solo expone un passthrough "raw": llama a cualquier endpoint GET
+// de la API con tu ODDS_API_KEY puesta por el servidor, y devuelve el JSON
+// tal cual para poder inspeccionarlo desde /admin/cuotas.
+//
 // Requiere el secret ODDS_API_KEY (Project Settings -> Edge Functions ->
-// Secrets en el dashboard de Supabase). Solo responde si quien llama es admin.
+// Secrets). Solo responde si quien llama es admin.
 //
-// Body JSON:
-//   { "action": "list_sports" }                    -> catálogo de deportes activos
-//   { "action": "odds", "sport_key": "soccer_epl" } -> partidos + cuotas de ese deporte
+// Body JSON: { "action": "raw", "path": "/v4/sports", "query": { "sportId": "1" } }
 // ============================================================================
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const ODDS_API_BASE = "https://api.the-odds-api.com/v4";
+const ODDS_API_BASE = "https://api.oddspapi.io";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -50,36 +53,31 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { action, sport_key } = await req.json().catch(() => ({}) as Record<string, unknown>);
+    const { action, path, query } = await req.json().catch(() => ({}) as Record<string, unknown>);
 
-    if (action === "list_sports") {
-      const r = await fetch(`${ODDS_API_BASE}/sports?apiKey=${apiKey}`);
-      const body = await r.json();
-      return json(body, r.status);
+    if (action === "raw") {
+      if (!path || typeof path !== "string" || !path.startsWith("/")) {
+        return json({ error: "path inválido (debe empezar por /, ej. /v4/sports)" }, 400);
+      }
+      const params = new URLSearchParams({ apiKey });
+      if (query && typeof query === "object") {
+        for (const [k, v] of Object.entries(query as Record<string, unknown>)) {
+          if (v != null) params.set(k, String(v));
+        }
+      }
+      const upstreamUrl = `${ODDS_API_BASE}${path}?${params}`;
+      const r = await fetch(upstreamUrl);
+      const text = await r.text();
+      let body: unknown = text;
+      try {
+        body = JSON.parse(text);
+      } catch {
+        /* la respuesta no era JSON; devolvemos el texto tal cual */
+      }
+      return json({ upstream_status: r.status, path, body });
     }
 
-    if (action === "odds") {
-      if (!sport_key || typeof sport_key !== "string") return json({ error: "Falta sport_key" }, 400);
-      const params = new URLSearchParams({
-        apiKey,
-        regions: "eu,uk,us",
-        markets: "h2h",
-        oddsFormat: "decimal",
-        dateFormat: "iso",
-      });
-      const r = await fetch(`${ODDS_API_BASE}/sports/${sport_key}/odds/?${params}`);
-      const body = await r.json();
-      if (!r.ok) return json(body, r.status);
-      return json({
-        quota: {
-          remaining: r.headers.get("x-requests-remaining"),
-          used: r.headers.get("x-requests-used"),
-        },
-        games: body,
-      });
-    }
-
-    return json({ error: "action debe ser 'list_sports' u 'odds'." }, 400);
+    return json({ error: "action debe ser 'raw' (modo diagnóstico) mientras exploramos el esquema de oddspapi.io." }, 400);
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : String(e) }, 500);
   }

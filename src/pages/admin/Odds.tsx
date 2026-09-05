@@ -1,164 +1,127 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { RefreshCw, Search } from "lucide-react";
+import { useState, type FormEvent } from "react";
+import { Search } from "lucide-react";
 import { useToast } from "@/components/Toast";
-import { bestPrices, getOdds, guessSportSlug, listOddsSports } from "@/lib/odds";
-import type { OddsGame, OddsQuota, OddsSport } from "@/lib/odds";
-import { time } from "@/lib/format";
+import { rawOdds } from "@/lib/odds";
+import type { RawOddsResponse } from "@/lib/odds";
+
+const PRESETS = [
+  { label: "Deportes", path: "/v4/sports", query: "" },
+  { label: "Casas de apuestas", path: "/v4/bookmakers", query: "" },
+  { label: "Mercados", path: "/v4/markets", query: "" },
+  { label: "Ligas de un deporte", path: "/v4/tournaments", query: "sportId=1" },
+];
 
 export function AdminOdds() {
   const toast = useToast();
-  const nav = useNavigate();
-  const [sports, setSports] = useState<OddsSport[] | null>(null);
-  const [sportsError, setSportsError] = useState<string | null>(null);
-  const [sportKey, setSportKey] = useState("");
-  const [games, setGames] = useState<OddsGame[] | null>(null);
-  const [quota, setQuota] = useState<OddsQuota | null>(null);
+  const [path, setPath] = useState("/v4/sports");
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const [loadedSports, setLoadedSports] = useState(false);
+  const [result, setResult] = useState<RawOddsResponse | null>(null);
 
-  useEffect(() => {
-    let alive = true;
-    listOddsSports()
-      .then((s) => {
-        if (!alive) return;
-        const active = s.filter((x) => x.active && !x.has_outrights);
-        setSports(active);
-        setLoadedSports(true);
-      })
-      .catch((e) => {
-        if (!alive) return;
-        setSportsError(e instanceof Error ? e.message : "No se pudo cargar la lista de deportes");
-        setLoadedSports(true);
-      });
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  const grouped = useMemo(() => {
-    const m = new Map<string, OddsSport[]>();
-    for (const s of sports ?? []) {
-      const arr = m.get(s.group);
-      if (arr) arr.push(s);
-      else m.set(s.group, [s]);
+  function parseQuery(raw: string): Record<string, string> {
+    const out: Record<string, string> = {};
+    for (const pair of raw.split("&")) {
+      const [k, v] = pair.split("=");
+      if (k?.trim()) out[k.trim()] = (v ?? "").trim();
     }
-    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [sports]);
+    return out;
+  }
 
-  async function search() {
-    if (!sportKey) return;
+  async function run(e?: FormEvent) {
+    e?.preventDefault();
     setLoading(true);
-    setGames(null);
+    setResult(null);
     try {
-      const res = await getOdds(sportKey);
-      setGames(res.games);
-      setQuota(res.quota);
-      if (res.games.length === 0) toast("Sin partidos próximos para ese deporte");
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "Error al consultar cuotas", "err");
+      const res = await rawOdds(path, parseQuery(query));
+      setResult(res);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Error al consultar", "err");
     } finally {
       setLoading(false);
     }
   }
 
-  function useOutcome(game: OddsGame, outcomeName: string, price: number) {
-    const sport = sports?.find((s) => s.key === game.sport_key);
-    nav("/admin/nuevo", {
-      state: {
-        prefill: {
-          sport_slug: guessSportSlug(sport?.group ?? ""),
-          competition: game.sport_title,
-          event: `${game.home_team} vs ${game.away_team}`,
-          market: "Ganador",
-          market_category: "moneyline",
-          selection: outcomeName,
-          odds: price,
-          event_start_at: game.commence_time,
-        },
-      },
-    });
-  }
-
   return (
     <div className="admin-page">
       <div>
-        <h2>Cuotas en vivo</h2>
+        <h2>Cuotas — modo diagnóstico</h2>
         <p style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}>
-          Datos de The Odds API. Elige un partido y una selección para prellenar el
-          formulario de publicar — tú decides stake, confianza y si lo marcas como
-          IA o manual.
+          oddspapi.io identifica todo por ID numérico. Antes de construir la
+          pantalla final necesitamos ver una respuesta real de cada endpoint de
+          referencia. Prueba los atajos, copia el resultado y pégamelo en el chat.
         </p>
       </div>
 
       <div className="card" style={{ display: "grid", gap: 14 }}>
-        {sportsError && <div className="auth-error">{sportsError}</div>}
-        {!loadedSports && <p style={{ color: "var(--muted)" }}>Cargando deportes…</p>}
-        {loadedSports && !sportsError && (
-          <div className="form-grid cols-2">
-            <div className="field">
-              <label htmlFor="sportKey">Deporte / liga</label>
-              <select id="sportKey" value={sportKey} onChange={(e) => setSportKey(e.target.value)}>
-                <option value="">Elige…</option>
-                {grouped.map(([group, list]) => (
-                  <optgroup key={group} label={group}>
-                    {list.map((s) => (
-                      <option key={s.key} value={s.key}>
-                        {s.title}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </div>
-            <div style={{ display: "flex", alignItems: "flex-end" }}>
-              <button className="btn btn-primary" type="button" disabled={!sportKey || loading} onClick={search}>
-                {loading ? <RefreshCw className="spin" aria-hidden width={15} height={15} /> : <Search aria-hidden width={15} height={15} />}
-                {loading ? " Buscando…" : " Buscar cuotas"}
-              </button>
-            </div>
+        <div className="chips" role="group" aria-label="Atajos">
+          {PRESETS.map((p) => (
+            <button
+              key={p.path + p.query}
+              type="button"
+              className="chip"
+              aria-pressed={path === p.path && query === p.query}
+              onClick={() => {
+                setPath(p.path);
+                setQuery(p.query);
+              }}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+
+        <form className="form-grid cols-2" onSubmit={run}>
+          <div className="field">
+            <label htmlFor="path">Endpoint (path)</label>
+            <input
+              id="path"
+              value={path}
+              onChange={(e) => setPath(e.target.value)}
+              placeholder="/v4/sports"
+            />
+            <span className="hint">Sin dominio ni apiKey — eso lo pone el servidor.</span>
           </div>
-        )}
-        {quota && (
-          <p style={{ fontSize: 11.5, color: "var(--faint)", margin: 0 }}>
-            Cuota de la API: {quota.used ?? "—"} usadas · {quota.remaining ?? "—"} restantes este mes.
-          </p>
-        )}
+          <div className="field">
+            <label htmlFor="query">Parámetros extra (opcional)</label>
+            <input
+              id="query"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="sportId=1&tournamentIds=12,34"
+            />
+            <span className="hint">Formato clave=valor&clave2=valor2</span>
+          </div>
+          <div className="form-actions" style={{ gridColumn: "1 / -1" }}>
+            <button className="btn btn-primary" type="submit" disabled={loading}>
+              <Search aria-hidden width={15} height={15} /> {loading ? "Consultando…" : "Probar"}
+            </button>
+          </div>
+        </form>
       </div>
 
-      {games && games.length > 0 && (
-        <div style={{ display: "grid", gap: 12 }}>
-          {games.map((g) => {
-            const best = bestPrices(g);
-            return (
-              <div className="settle-item" key={g.id}>
-                <div className="si-head">
-                  <span className="si-ev">
-                    {g.home_team} vs {g.away_team}
-                  </span>
-                </div>
-                <div className="si-meta">
-                  {g.sport_title} · inicio <span className="num">{time(g.commence_time)}</span>{" "}
-                  {new Date(g.commence_time).toLocaleDateString("es-ES", { day: "numeric", month: "short" })}
-                  {" · "}
-                  {g.bookmakers.length} casas comparadas
-                </div>
-                <div className="settle-controls" style={{ flexWrap: "wrap" }}>
-                  {Object.entries(best).map(([name, { price, bookmaker }]) => (
-                    <button
-                      key={name}
-                      className="res-btn"
-                      type="button"
-                      title={`Mejor precio: ${bookmaker}`}
-                      onClick={() => useOutcome(g, name, price)}
-                    >
-                      {name} · <span className="num">{price.toFixed(2)}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+      {result && (
+        <div className="card">
+          <h2 style={{ fontSize: 15 }}>
+            Respuesta ·{" "}
+            <span className={result.upstream_status < 300 ? "pos" : "neg"}>
+              HTTP {result.upstream_status}
+            </span>
+          </h2>
+          <p className="sub">{result.path}</p>
+          <pre
+            style={{
+              background: "var(--surface-2)",
+              border: "1px solid var(--border)",
+              borderRadius: 10,
+              padding: 14,
+              fontSize: 12,
+              overflowX: "auto",
+              maxHeight: 480,
+              overflowY: "auto",
+            }}
+          >
+            {JSON.stringify(result.body, null, 2)}
+          </pre>
         </div>
       )}
     </div>
