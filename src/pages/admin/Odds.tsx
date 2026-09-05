@@ -4,11 +4,14 @@ import { useToast } from "@/components/Toast";
 import { rawOdds } from "@/lib/odds";
 import type { RawOddsResponse } from "@/lib/odds";
 
+// sportId reales (de /v4/sports): 10 fútbol, 11 baloncesto, 12 tenis, 14 fútbol americano
 const PRESETS = [
   { label: "Deportes", path: "/v4/sports", query: "" },
   { label: "Casas de apuestas", path: "/v4/bookmakers", query: "" },
   { label: "Mercados", path: "/v4/markets", query: "" },
-  { label: "Ligas de un deporte", path: "/v4/tournaments", query: "sportId=1" },
+  { label: "Ligas · Fútbol", path: "/v4/tournaments", query: "sportId=10" },
+  { label: "Ligas · Baloncesto", path: "/v4/tournaments", query: "sportId=11" },
+  { label: "Participantes", path: "/v4/participants", query: "" },
 ];
 
 export function AdminOdds() {
