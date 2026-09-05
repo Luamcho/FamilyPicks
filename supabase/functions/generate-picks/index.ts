@@ -122,11 +122,14 @@ Deno.serve(async (req) => {
 
     // ------------------------------------------------------------------
     // 1) Hasta MAX_PER_SPORT fixtures con cuotas, por deporte, priorizando
-    //    ligas/torneos principales.
+    //    ligas/torneos principales. Ventana de 10 días (máximo que admite
+    //    /v4/fixtures) para que, si hoy no juega nadie importante, agarre
+    //    los próximos partidos en vez de devolver vacío — se ordenan por
+    //    fecha así que los de hoy siempre salen primero cuando los hay.
     // ------------------------------------------------------------------
     const now = new Date();
     const from = now.toISOString();
-    const to = new Date(now.getTime() + 36 * 3600 * 1000).toISOString();
+    const to = new Date(now.getTime() + 10 * 24 * 3600 * 1000).toISOString();
 
     const fixtures: FixtureLite[] = [];
     for (const sport of SPORTS) {
@@ -202,7 +205,7 @@ Deno.serve(async (req) => {
     }
 
     if (withOdds.length === 0) {
-      return json({ batch_id: null, candidates_count: 0, candidates: [], note: "Hoy no hay partidos con cuotas de Hard Rock Bet en las ligas principales." });
+      return json({ batch_id: null, candidates_count: 0, candidates: [], note: "No se encontraron partidos con cuotas de Hard Rock Bet en las ligas principales en los próximos 10 días." });
     }
 
     // ------------------------------------------------------------------
@@ -217,7 +220,7 @@ Deno.serve(async (req) => {
       markets: f.markets,
     }));
 
-    const systemPrompt = `Eres un analista de apuestas deportivas. Te doy una lista de partidos de hoy con las cuotas reales que ofrece la casa Hard Rock Bet (ya filtradas: solo mercados que esa casa cotiza). Elige los mejores picks del día (mínimo 1, máximo 6) según valor esperado y solidez del razonamiento.
+    const systemPrompt = `Eres un analista de apuestas deportivas. Te doy una lista de próximos partidos (pueden ser de hoy o de los próximos días — cada uno trae su "startTime") con las cuotas reales que ofrece la casa Hard Rock Bet (ya filtradas: solo mercados que esa casa cotiza). Elige los mejores picks (mínimo 1, máximo 6) según valor esperado y solidez del razonamiento, priorizando los partidos más próximos en el tiempo si hay varios de calidad similar.
 
 Reglas estrictas:
 - Solo puedes elegir partidos, mercados y cuotas que aparecen tal cual en los datos. No inventes partidos ni cuotas.
@@ -225,7 +228,7 @@ Reglas estrictas:
 - "odds" debe copiarse exacto del "price" del outcome elegido.
 - "ref" debe ser el número "ref" del partido tal como aparece en los datos.
 - "stake" es un entero 1-10 (tamaño de apuesta sugerido, 10 = máxima confianza). "confidence" es un entero 1-5.
-- "analysis" es una justificación breve en español (1-3 frases).
+- "analysis" es una justificación breve en español (1-3 frases), mencionando el día si el partido no es hoy.
 
 Responde SOLO con JSON válido, sin texto extra, con esta forma exacta:
 {"picks":[{"ref":0,"market":"nombre del mercado","market_category":"moneyline","selection":"nombre de la opción elegida","odds":1.85,"stake":5,"confidence":3,"analysis":"..."}]}`;
