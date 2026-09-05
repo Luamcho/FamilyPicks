@@ -15,6 +15,7 @@ export function AdminCandidates() {
   const [candidates, setCandidates] = useState<PickCandidate[] | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [leaguesInput, setLeaguesInput] = useState("");
 
   async function load() {
     try {
@@ -31,7 +32,11 @@ export function AdminCandidates() {
   async function onGenerate() {
     setGenerating(true);
     try {
-      const res = await generatePicksNow();
+      const leagues = leaguesInput
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const res = await generatePicksNow(leagues);
       if (res.candidates_count > 0) {
         toast(`${res.candidates_count} pick(s) nuevo(s) para revisar`);
       } else {
@@ -72,17 +77,33 @@ export function AdminCandidates() {
 
   return (
     <div className="admin-page">
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        <div>
-          <h2>Candidatos IA</h2>
-          <p style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}>
-            Cada día la automatización revisa los partidos con cuotas de Hard Rock Bet y
-            propone picks aquí. Nada se publica hasta que apruebas uno.
-          </p>
+      <div>
+        <h2>Candidatos IA</h2>
+        <p style={{ color: "var(--muted)", fontSize: 13, margin: 0 }}>
+          Cada día la automatización revisa los partidos con cuotas de Hard Rock Bet y
+          propone picks aquí. Nada se publica hasta que apruebas uno.
+        </p>
+      </div>
+
+      <div className="card" style={{ display: "grid", gap: 10 }}>
+        <div className="field">
+          <label htmlFor="leagues">Liga(s) a buscar (opcional)</label>
+          <input
+            id="leagues"
+            value={leaguesInput}
+            onChange={(e) => setLeaguesInput(e.target.value)}
+            placeholder="LaLiga, Champions League, NBA…"
+          />
+          <span className="hint">
+            Separadas por coma. Se busca por nombre dentro de todos los partidos con cuotas de
+            los próximos 10 días. Vacío = ligas principales por defecto.
+          </span>
         </div>
-        <button className="btn btn-primary" type="button" onClick={onGenerate} disabled={generating}>
-          <RefreshCw aria-hidden width={15} height={15} /> {generating ? "Generando…" : "Generar ahora"}
-        </button>
+        <div className="form-actions">
+          <button className="btn btn-primary" type="button" onClick={onGenerate} disabled={generating}>
+            <RefreshCw aria-hidden width={15} height={15} /> {generating ? "Generando…" : "Generar ahora"}
+          </button>
+        </div>
       </div>
 
       {candidates === null && <p className="sub">Cargando…</p>}

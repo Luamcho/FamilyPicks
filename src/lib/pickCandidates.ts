@@ -68,8 +68,12 @@ export interface GeneratePicksResult {
   note?: string;
 }
 
-/** Dispara la automatización ahora mismo (misma lógica que corre el cron diario). */
-export async function generatePicksNow(): Promise<GeneratePicksResult> {
+/**
+ * Dispara la automatización ahora mismo (misma lógica que corre el cron
+ * diario). Si se pasan `leagues`, busca SOLO esas ligas/torneos (por nombre,
+ * ej. "LaLiga", "NBA") en vez del criterio de ligas principales por defecto.
+ */
+export async function generatePicksNow(leagues?: string[]): Promise<GeneratePicksResult> {
   if (!isSupabaseConfigured || !supabase || !supabaseUrl || !supabaseAnonKey) {
     throw new Error("Conecta Supabase para generar picks (no disponible en modo demo).");
   }
@@ -85,7 +89,7 @@ export async function generatePicksNow(): Promise<GeneratePicksResult> {
       Authorization: `Bearer ${session.access_token}`,
       apikey: supabaseAnonKey,
     },
-    body: "{}",
+    body: JSON.stringify(leagues && leagues.length ? { leagues } : {}),
   });
 
   let payload: unknown = null;

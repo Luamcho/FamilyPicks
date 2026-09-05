@@ -131,6 +131,18 @@ Deno.serve(async (req) => {
     const from = now.toISOString();
     const to = new Date(now.getTime() + 10 * 24 * 3600 * 1000).toISOString();
 
+    // Body opcional: { "leagues": ["LaLiga", "NBA", ...] } — si el dueño da su
+    // propia lista de ligas/torneos, se busca SOLO ahí (sin caer de vuelta a
+    // "cualquier partido" del deporte). Sin body o con leagues vacío, se usa
+    // el criterio por defecto (SPORTS[].majorTournaments, con fallback a todo
+    // el deporte si ninguno matchea).
+    const payload = await req.json().catch(() => ({}) as Record<string, unknown>);
+    const overrideLeagues = Array.isArray((payload as { leagues?: unknown }).leagues)
+      ? ((payload as { leagues: unknown[] }).leagues)
+          .map((s) => String(s).trim().toLowerCase())
+          .filter(Boolean)
+      : [];
+
     const fixtures: FixtureLite[] = [];
     for (const sport of SPORTS) {
       const { status, body } = await oddsGet("/v4/fixtures", {
@@ -150,10 +162,15 @@ Deno.serve(async (req) => {
         startTime: String(f.startTime ?? ""),
       })).filter((f) => f.fixtureId);
 
-      const major = sport.majorTournaments.length
-        ? all.filter((f) => sport.majorTournaments.some((t) => f.tournament.toLowerCase().includes(t)))
-        : all;
-      const pool = major.length ? major : all;
+      let pool: FixtureLite[];
+      if (overrideLeagues.length) {
+        pool = all.filter((f) => overrideLeagues.some((t) => f.tournament.toLowerCase().includes(t)));
+      } else {
+        const major = sport.majorTournaments.length
+          ? all.filter((f) => sport.majorTournaments.some((t) => f.tournament.toLowerCase().includes(t)))
+          : all;
+        pool = major.length ? major : all;
+      }
       pool.sort((a, b) => a.startTime.localeCompare(b.startTime));
       fixtures.push(...pool.slice(0, MAX_PER_SPORT));
     }
@@ -205,7 +222,17 @@ Deno.serve(async (req) => {
     }
 
     if (withOdds.length === 0) {
-      return json({ batch_id: null, candidates_count: 0, candidates: [], note: "No se encontraron partidos con cuotas de Hard Rock Bet en las ligas principales en los próximos 10 días." });
+      const where = overrideLeagues.length ? `en "${overrideLeagues.join(", ")}"` : "en las ligas principales";
+      return json({
+        batch_id: null,
+        candidates_count: 0,
+        candidates: [],
+        note: `No se encontraron partidos con cuotas de Hard Rock Bet ${where} en los próximos 10 días. ${
+          fixtures.length === 0
+            ? "No hubo ni fixtures que coincidieran con esa búsqueda — revisa el nombre de la liga."
+            : `Sí hay ${fixtures.length} partido(s) que coinciden, pero Hard Rock Bet no tiene cuotas cargadas para ninguno todavía.`
+        }`,
+      });
     }
 
     // ------------------------------------------------------------------
