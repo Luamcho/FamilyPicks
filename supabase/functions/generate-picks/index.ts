@@ -3,18 +3,20 @@
 //
 // Automatización diaria: para cada deporte, saca hasta 10 partidos de las
 // ligas/torneos principales que juegan hoy (oddspapi.io, con hasOdds=true),
-// se queda solo con los que Hard Rock Bet cotiza, le pide a Claude que elija
-// los mejores picks del día y guarda las propuestas en `pick_candidates`
-// (NO en `picks` — el dueño las aprueba a mano desde /admin/candidatos).
+// se queda solo con los que Hard Rock Bet cotiza, le pide a una IA (Google
+// Gemini, capa gratuita) que elija los mejores picks del día y guarda las
+// propuestas en `pick_candidates` (NO en `picks` — el dueño las aprueba a
+// mano desde /admin/candidatos).
 //
 // Se puede llamar de dos formas:
 //   1) Manual: un admin logueado, desde el botón "Generar ahora" del panel.
 //   2) Cron: un job diario de pg_cron/pg_net que llama con el service_role
 //      key como Bearer (ver migración 20260904160000_daily_picks_cron.sql).
 //
-// Requiere los secrets ODDS_API_KEY y ANTHROPIC_API_KEY (Project Settings ->
+// Requiere los secrets ODDS_API_KEY y GEMINI_API_KEY (Project Settings ->
 // Edge Functions -> Secrets). El dueño los da de alta, esta función nunca
-// los expone.
+// los expone. GEMINI_API_KEY se saca gratis en aistudio.google.com/apikey
+// (capa gratuita de Gemini, sin tarjeta).
 // ============================================================================
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -102,9 +104,9 @@ Deno.serve(async (req) => {
     if (!oddsApiKey) {
       return json({ error: "Falta el secret ODDS_API_KEY." }, 500);
     }
-    const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY");
-    if (!anthropicKey) {
-      return json({ error: "Falta el secret ANTHROPIC_API_KEY." }, 500);
+    const geminiKey = Deno.env.get("GEMINI_API_KEY");
+    if (!geminiKey) {
+      return json({ error: "Falta el secret GEMINI_API_KEY." }, 500);
     }
 
     async function oddsGet(path: string, extra: Record<string, string> = {}) {
@@ -236,7 +238,7 @@ Deno.serve(async (req) => {
     }
 
     // ------------------------------------------------------------------
-    // 3) Claude elige los mejores picks entre lo que Hard Rock cotiza hoy.
+    // 3) La IA elige los mejores picks entre lo que Hard Rock cotiza hoy.
     // ------------------------------------------------------------------
     const catalog = withOdds.map((f, i) => ({
       ref: i,
@@ -260,41 +262,35 @@ Reglas estrictas:
 Responde SOLO con JSON válido, sin texto extra, con esta forma exacta:
 {"picks":[{"ref":0,"market":"nombre del mercado","market_category":"moneyline","selection":"nombre de la opción elegida","odds":1.85,"stake":5,"confidence":3,"analysis":"..."}]}`;
 
-    // Algunas API keys (las "Admin"/organización, en vez de una key normal
-    // creada dentro de un workspace) exigen indicar el workspace aparte.
-    // Si el dueño puso el secret opcional ANTHROPIC_WORKSPACE_ID, se manda;
-    // si no, no se manda el header (comportamiento normal para una key ya
-    // scoped a un workspace).
-    const anthropicWorkspaceId = Deno.env.get("ANTHROPIC_WORKSPACE_ID");
-    const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "x-api-key": anthropicKey,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
-        ...(anthropicWorkspaceId ? { "anthropic-workspace-id": anthropicWorkspaceId } : {}),
+    const GEMINI_MODEL = "gemini-2.0-flash";
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: "user", parts: [{ text: JSON.stringify(catalog) }] }],
+          generationConfig: { responseMimeType: "application/json", maxOutputTokens: 4000 },
+        }),
       },
-      body: JSON.stringify({
-        model: "claude-sonnet-5",
-        max_tokens: 4000,
-        system: systemPrompt,
-        messages: [{ role: "user", content: JSON.stringify(catalog) }],
-      }),
-    });
+    );
 
-    if (!claudeRes.ok) {
-      const errBody = await claudeRes.text();
-      return json({ error: `Anthropic API error ${claudeRes.status}: ${errBody.slice(0, 500)}` }, 502);
+    if (!geminiRes.ok) {
+      const errBody = await geminiRes.text();
+      return json({ error: `Gemini API error ${geminiRes.status}: ${errBody.slice(0, 500)}` }, 502);
     }
-    const claudeBody = await claudeRes.json();
-    const text = (claudeBody.content ?? []).map((c: { text?: string }) => c.text ?? "").join("");
+    const geminiBody = await geminiRes.json();
+    const text = (geminiBody.candidates?.[0]?.content?.parts ?? [])
+      .map((p: { text?: string }) => p.text ?? "")
+      .join("");
 
     let parsed: { picks?: Record<string, unknown>[] };
     try {
       const match = text.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(match ? match[0] : text);
     } catch {
-      return json({ error: "Claude no devolvió JSON válido.", raw: text.slice(0, 800) }, 502);
+      return json({ error: "La IA no devolvió JSON válido.", raw: text.slice(0, 800) }, 502);
     }
 
     // ------------------------------------------------------------------
@@ -335,7 +331,7 @@ Responde SOLO con JSON válido, sin texto extra, con esta forma exacta:
     }
 
     if (rows.length === 0) {
-      return json({ batch_id: null, candidates_count: 0, candidates: [], note: "Claude no propuso picks válidos hoy." });
+      return json({ batch_id: null, candidates_count: 0, candidates: [], note: "La IA no propuso picks válidos hoy." });
     }
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, serviceRoleKey);
