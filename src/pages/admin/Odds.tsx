@@ -5,13 +5,16 @@ import { rawOdds } from "@/lib/odds";
 import type { RawOddsResponse } from "@/lib/odds";
 
 // sportId reales (de /v4/sports): 10 fútbol, 11 baloncesto, 12 tenis, 14 fútbol americano
+// tournamentId de la doc oficial (deberían ser estables, no por-usuario): 8 LaLiga, 7 Champions
 const PRESETS = [
   { label: "Deportes", path: "/v4/sports", query: "" },
   { label: "Casas de apuestas", path: "/v4/bookmakers", query: "" },
-  { label: "Mercados", path: "/v4/markets", query: "" },
+  { label: "Mercados · Fútbol", path: "/v4/markets", query: "sportId=10" },
+  { label: "Mercados · Baloncesto", path: "/v4/markets", query: "sportId=11" },
   { label: "Ligas · Fútbol", path: "/v4/tournaments", query: "sportId=10" },
   { label: "Ligas · Baloncesto", path: "/v4/tournaments", query: "sportId=11" },
-  { label: "Participantes", path: "/v4/participants", query: "" },
+  { label: "Fixtures · LaLiga", path: "/v4/fixtures", query: "tournamentId=8" },
+  { label: "Participantes · Fútbol", path: "/v4/participants", query: "sportId=10" },
 ];
 
 export function AdminOdds() {
