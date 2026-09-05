@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from "react";
-import { Search, Copy, Check } from "lucide-react";
+import { Search, Copy, Check, TrendingUp, TrendingDown, Minus, History } from "lucide-react";
 import { useToast } from "@/components/Toast";
-import { rawOdds, findBookmaker, getBookmakerOdds } from "@/lib/odds";
-import type { RawOddsResponse, BookmakerMatch, BookmakerOddsResult } from "@/lib/odds";
-import { odds as fmtOdds, time } from "@/lib/format";
+import { rawOdds, findBookmaker, getBookmakerOdds, getHistoricalOdds } from "@/lib/odds";
+import type { RawOddsResponse, BookmakerMatch, BookmakerOddsResult, HistoricalOddsResult } from "@/lib/odds";
+import { odds as fmtOdds, time, shortDate } from "@/lib/format";
 
 // sportId reales (de /v4/sports): 10 fútbol, 11 baloncesto, 12 tenis, 14 fútbol americano
 // tournamentId de la doc oficial (deberían ser estables, no por-usuario): 8 LaLiga, 7 Champions
@@ -63,6 +63,27 @@ export function AdminOdds() {
       toast(err instanceof Error ? err.message : "Error al consultar mercados", "err");
     } finally {
       setMoLoading(false);
+    }
+  }
+
+  // --- histórico de cuotas (apertura -> actual) ---
+  const [histLoading, setHistLoading] = useState(false);
+  const [histResult, setHistResult] = useState<HistoricalOddsResult | null>(null);
+
+  async function loadHistory() {
+    if (!bkSlug || !fixtureId) {
+      toast("Necesitas el slug de la casa y un fixtureId", "err");
+      return;
+    }
+    setHistLoading(true);
+    setHistResult(null);
+    try {
+      const res = await getHistoricalOdds(bkSlug, fixtureId);
+      setHistResult(res);
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Error al consultar el histórico", "err");
+    } finally {
+      setHistLoading(false);
     }
   }
 
@@ -204,7 +225,85 @@ export function AdminOdds() {
         )}
       </div>
 
-      {/* 3. Explorador genérico */}
+      {/* 3. Histórico de cuotas: apertura -> actual, para ver hacia dónde carga el mercado */}
+      <div className="card" style={{ display: "grid", gap: 12 }}>
+        <h3 style={{ margin: 0, fontSize: 14 }}>3. Movimiento de cuotas</h3>
+        <p className="sub" style={{ margin: 0 }}>
+          Cómo cambió cada cuota desde que se abrió el mercado — usa el mismo{" "}
+          <code>fixtureId</code> y casa de arriba. Solo hay datos desde enero de 2026.
+        </p>
+        <div className="form-actions">
+          <button className="btn btn-primary" type="button" onClick={loadHistory} disabled={histLoading || !bkSlug}>
+            <History aria-hidden width={15} height={15} /> {histLoading ? "Consultando…" : "Ver histórico"}
+          </button>
+        </div>
+
+        {histResult && (
+          <div style={{ display: "grid", gap: 10 }}>
+            <div className="si-head">
+              <span className="si-ev">{histResult.event}</span>
+            </div>
+            <div className="si-meta">
+              {histResult.tournament ?? "—"} · {histResult.startTime ? time(histResult.startTime) : "—"} · casa{" "}
+              <span className="num">{histResult.bookmaker}</span>
+            </div>
+            {histResult.note && <p className="sub">{histResult.note}</p>}
+            {histResult.markets.map((m) => (
+              <div key={m.marketId} className="settle-item">
+                <div className="si-head">
+                  <span className="si-ev" style={{ fontSize: 14 }}>
+                    {m.marketName}
+                  </span>
+                  {m.marketType && <span className="badge badge--ai">{m.marketType}</span>}
+                </div>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {m.outcomes.map((o) => {
+                    const openP = o.opening?.price ?? null;
+                    const latP = o.latest?.price ?? null;
+                    const dir = openP != null && latP != null ? Math.sign(latP - openP) : 0;
+                    return (
+                      <div key={o.outcomeId} style={{ display: "grid", gap: 4 }}>
+                        <div className="settle-controls" style={{ flexWrap: "wrap" }}>
+                          <span className="res-btn" style={{ cursor: "default" }}>
+                            {o.outcomeName}
+                          </span>
+                          <span className="res-btn" style={{ cursor: "default" }}>
+                            Apertura <span className="num">{openP != null ? fmtOdds(openP) : "—"}</span>
+                            {" → "}
+                            <span className={`num ${dir < 0 ? "neg" : dir > 0 ? "pos" : ""}`}>
+                              {latP != null ? fmtOdds(latP) : "—"}
+                            </span>{" "}
+                            {dir < 0 && <TrendingDown aria-hidden width={13} height={13} style={{ display: "inline", verticalAlign: -2 }} />}
+                            {dir > 0 && <TrendingUp aria-hidden width={13} height={13} style={{ display: "inline", verticalAlign: -2 }} />}
+                            {dir === 0 && <Minus aria-hidden width={13} height={13} style={{ display: "inline", verticalAlign: -2 }} />}
+                          </span>
+                          {o.latest && !o.latest.active && <span className="badge">cerrada</span>}
+                        </div>
+                        {o.history.length > 1 && (
+                          <details>
+                            <summary className="hint" style={{ cursor: "pointer" }}>
+                              {o.history.length} cambios de cuota
+                            </summary>
+                            <div className="chips" style={{ marginTop: 6 }}>
+                              {[...o.history].reverse().map((h, i) => (
+                                <span key={i} className="chip" title={h.at} style={{ cursor: "default", opacity: h.active ? 1 : 0.55 }}>
+                                  {fmtOdds(h.price)} · {shortDate(h.at)} {time(h.at)}
+                                </span>
+                              ))}
+                            </div>
+                          </details>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 4. Explorador genérico */}
       <div className="card" style={{ display: "grid", gap: 14 }}>
         <h3 style={{ margin: 0, fontSize: 14 }}>Explorador genérico (para conseguir fixtureId, etc.)</h3>
         <div className="chips" role="group" aria-label="Atajos">

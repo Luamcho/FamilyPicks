@@ -95,3 +95,39 @@ export interface BookmakerOddsResult {
 export async function getBookmakerOdds(bookmaker: string, fixtureId: string): Promise<BookmakerOddsResult> {
   return invoke({ action: "bookmaker_odds", bookmaker, fixture_id: fixtureId });
 }
+
+export interface OddsPoint {
+  price: number;
+  at: string;
+  active: boolean;
+}
+export interface HistoricalOutcome {
+  outcomeId: number;
+  outcomeName: string;
+  opening: { price: number; at: string } | null;
+  latest: { price: number; at: string; active: boolean } | null;
+  history: OddsPoint[];
+}
+export interface HistoricalMarket {
+  marketId: number;
+  marketName: string;
+  marketType: string | null;
+  outcomes: HistoricalOutcome[];
+}
+export interface HistoricalOddsResult {
+  event: string;
+  tournament: string | null;
+  startTime: string | null;
+  bookmaker: string;
+  markets: HistoricalMarket[];
+  note?: string;
+}
+
+/**
+ * Cómo se movió la cuota de una casa para un partido (apertura -> actual +
+ * cada cambio intermedio). Útil para ver si el mercado se está cargando
+ * hacia un lado antes de decidir el pick. Solo hay datos desde enero 2026.
+ */
+export async function getHistoricalOdds(bookmaker: string, fixtureId: string): Promise<HistoricalOddsResult> {
+  return invoke({ action: "historical_odds", bookmaker, fixture_id: fixtureId });
+}

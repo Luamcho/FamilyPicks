@@ -13,6 +13,7 @@
 //   { "action": "raw", "path": "/v4/sports", "query": { "sportId": "1" } }
 //   { "action": "find_bookmaker", "query": "hard rock" }
 //   { "action": "bookmaker_odds", "bookmaker": "hard-rock-bet", "fixture_id": "id1000..." }
+//   { "action": "historical_odds", "bookmaker": "hard-rock-bet", "fixture_id": "id1000..." }
 // ============================================================================
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -193,7 +194,93 @@ Deno.serve(async (req) => {
       });
     }
 
-    return json({ error: "action debe ser 'raw', 'find_bookmaker' o 'bookmaker_odds'." }, 400);
+    // ------------------------------------------------------------------
+    // historical_odds: cómo se movió la cuota de UNA casa para UN partido
+    // (apertura -> actual + cada cambio intermedio) — para ver si el mercado
+    // se está cargando hacia un lado antes de decidir el pick.
+    // ------------------------------------------------------------------
+    if (action === "historical_odds") {
+      const { bookmaker, fixture_id } = payload as { bookmaker?: string; fixture_id?: string };
+      if (!bookmaker || !fixture_id) {
+        return json({ error: "Faltan 'bookmaker' (slug) y/o 'fixture_id'." }, 400);
+      }
+
+      const oddsRes = await upstream("/v4/odds", { fixtureId: fixture_id, bookmakers: bookmaker });
+      if (oddsRes.status >= 300) {
+        return json({ error: "oddspapi.io devolvió un error", upstream_status: oddsRes.status, body: oddsRes.body }, 502);
+      }
+      const fixture = oddsRes.body as Record<string, unknown>;
+      const event = `${fixture.participant1Name ?? "?"} vs ${fixture.participant2Name ?? "?"}`;
+      const tournament = fixture.tournamentName ?? null;
+      const startTime = fixture.startTime ?? null;
+      const sportId = fixture.sportId;
+
+      const histRes = await upstream("/v4/historical-odds", { fixtureId: fixture_id, bookmakers: bookmaker });
+      if (histRes.status >= 300) {
+        return json({ error: "oddspapi.io devolvió un error", upstream_status: histRes.status, body: histRes.body }, 502);
+      }
+      const histBody = histRes.body as Record<string, unknown>;
+      const bookmakersRaw = (histBody.bookmakers ?? {}) as Record<string, { markets?: Record<string, unknown> }>;
+      const thisBook = bookmakersRaw[bookmaker];
+      const marketsRaw = (thisBook?.markets ?? {}) as Record<
+        string,
+        {
+          outcomes?: Record<
+            string,
+            { players?: Record<string, { createdAt: string; price: number; active: boolean }[]> }
+          >;
+        }
+      >;
+      const marketIds = Object.keys(marketsRaw);
+
+      if (marketIds.length === 0) {
+        return json({
+          event,
+          tournament,
+          startTime,
+          bookmaker,
+          markets: [],
+          note: `${bookmaker} no tiene histórico de cuotas para este partido. Solo hay datos desde enero de 2026 en adelante.`,
+        });
+      }
+
+      const marketsRefRes = await upstream("/v4/markets", sportId != null ? { sportId: String(sportId) } : {});
+      const marketDefs = (marketsRefRes.status < 300 ? (marketsRefRes.body as MarketDef[]) : []) ?? [];
+      const marketById = new Map(marketDefs.map((m) => [String(m.marketId), m]));
+
+      const markets = marketIds.map((mid) => {
+        const def = marketById.get(mid);
+        const outcomeNameById = new Map((def?.outcomes ?? []).map((o) => [String(o.outcomeId), o.outcomeName]));
+        const outcomesRaw = marketsRaw[mid].outcomes ?? {};
+        const outcomes = Object.entries(outcomesRaw).map(([oid, o]) => {
+          // La doc dice que cada lista viene más-reciente-primero; se ordena
+          // igual por si acaso, para no depender de eso a ciegas.
+          const entries = Object.values(o.players ?? {}).flat();
+          const sorted = [...entries].sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          );
+          const latest = sorted[0] ?? null;
+          const opening = sorted[sorted.length - 1] ?? null;
+          return {
+            outcomeId: Number(oid),
+            outcomeName: outcomeNameById.get(oid) ?? `#${oid}`,
+            opening: opening ? { price: opening.price, at: opening.createdAt } : null,
+            latest: latest ? { price: latest.price, at: latest.createdAt, active: latest.active } : null,
+            history: sorted.map((e) => ({ price: e.price, at: e.createdAt, active: e.active })),
+          };
+        });
+        return {
+          marketId: Number(mid),
+          marketName: def?.marketName ?? `Mercado #${mid}`,
+          marketType: def?.marketType ?? null,
+          outcomes,
+        };
+      });
+
+      return json({ event, tournament, startTime, bookmaker, markets });
+    }
+
+    return json({ error: "action debe ser 'raw', 'find_bookmaker', 'bookmaker_odds' o 'historical_odds'." }, 400);
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : String(e) }, 500);
   }
