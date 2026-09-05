@@ -20,7 +20,7 @@ end $$;
 
 select cron.schedule(
   'generate-daily-picks',
-  '0 13 * * *', -- 13:00 UTC ≈ 8am hora Colombia/Perú/Ecuador (UTC-5)
+  '0 6 * * *', -- 06:00 UTC
   $cron$
   select net.http_post(
     url := 'https://eaploqxskxhqczkqubxy.supabase.co/functions/v1/generate-picks',
