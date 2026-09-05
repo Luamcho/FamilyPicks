@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Search } from "lucide-react";
+import { Search, Copy, Check } from "lucide-react";
 import { useToast } from "@/components/Toast";
 import { rawOdds } from "@/lib/odds";
 import type { RawOddsResponse } from "@/lib/odds";
@@ -20,6 +20,19 @@ export function AdminOdds() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<RawOddsResponse | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  async function copyJson() {
+    if (!result) return;
+    const text = JSON.stringify(result.body, null, 2);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      toast("No se pudo copiar. Selecciona el texto a mano.", "err");
+    }
+  }
 
   function parseQuery(raw: string): Record<string, string> {
     const out: Record<string, string> = {};
@@ -104,12 +117,31 @@ export function AdminOdds() {
 
       {result && (
         <div className="card">
-          <h2 style={{ fontSize: 15 }}>
-            Respuesta ·{" "}
-            <span className={result.upstream_status < 300 ? "pos" : "neg"}>
-              HTTP {result.upstream_status}
-            </span>
-          </h2>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <h2 style={{ fontSize: 15, margin: 0 }}>
+              Respuesta ·{" "}
+              <span className={result.upstream_status < 300 ? "pos" : "neg"}>
+                HTTP {result.upstream_status}
+              </span>
+            </h2>
+            <button
+              className="btn btn-ghost btn-sm"
+              type="button"
+              onClick={copyJson}
+              style={{ marginLeft: "auto" }}
+              aria-label="Copiar todo el JSON"
+            >
+              {copied ? (
+                <>
+                  <Check aria-hidden width={14} height={14} /> Copiado
+                </>
+              ) : (
+                <>
+                  <Copy aria-hidden width={14} height={14} /> Copiar JSON
+                </>
+              )}
+            </button>
+          </div>
           <p className="sub">{result.path}</p>
           <pre
             style={{
