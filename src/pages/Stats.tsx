@@ -44,26 +44,22 @@ export function Stats() {
 
   return (
     <div className="page-pad content-narrow" style={{ display: "grid", gap: 18 }}>
-      {/* authority */}
+      {/* resumen */}
       <section className="card authority">
         <div className="a-head">
           <span className="a-av" aria-hidden />
           <div style={{ flex: "1 1 180px" }}>
             <div className="a-name">
-              FamilyPicks
-              <ShieldCheck aria-label="Historial auditado y público" />
+              Tu track record
+              <ShieldCheck aria-label="Historial completo, sin selección" />
             </div>
             <div className="a-sub">
-              Historial auditado y público
+              Historial completo
               {overview?.first_pick_at
                 ? ` desde ${new Date(overview.first_pick_at).toLocaleDateString("es-ES", { month: "short", year: "numeric" })}`
-                : ""}{" "}
-              · 1 tipster
+                : ""}
             </div>
           </div>
-          <a className="btn btn-primary" href="/#planes">
-            Suscribirse
-          </a>
         </div>
         <p className="a-method">
           Value betting en fútbol europeo y NBA, con cobertura menor en tenis y NFL.

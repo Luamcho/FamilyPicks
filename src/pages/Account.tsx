@@ -1,24 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
-import { CheckCircle2, CreditCard, ShieldCheck, LogOut, Bell, LayoutDashboard } from "lucide-react";
-import { usePlan } from "@/context/PlanContext";
+import { CheckCircle2, ShieldCheck, LogOut, Bell, LayoutDashboard, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useIsAdmin } from "@/lib/auth";
 import { DEMO_MODE } from "@/lib/api";
-import type { PlanTier } from "@/lib/types";
-
-const PLAN_NAME: Record<PlanTier, string> = {
-  free: "Gratis",
-  premium: "Premium",
-  vip: "VIP",
-};
-const PLAN_DESC: Record<PlanTier, string> = {
-  free: "Picks con 24 h de retraso · 1 deporte · histórico completo.",
-  premium: "Todos los picks en tiempo real · todos los deportes · alertas por email.",
-  vip: "Todo Premium + push y Telegram · picks de stake alto · cuota de cierre registrada.",
-};
 
 export function Account() {
-  const { plan: demoPlan } = usePlan();
   const { user, profile, loading, signOut } = useAuth();
   const { isAdmin } = useIsAdmin();
   const nav = useNavigate();
@@ -30,23 +16,21 @@ export function Account() {
   if (!DEMO_MODE && !user) {
     return (
       <div className="page-pad content-narrow" style={{ maxWidth: 420, textAlign: "center", paddingTop: 60 }}>
-        <CreditCard aria-hidden style={{ color: "var(--primary)", width: 28, height: 28, marginBottom: 12 }} />
+        <User aria-hidden style={{ color: "var(--primary)", width: 28, height: 28, marginBottom: 12 }} />
         <h2 style={{ fontFamily: "var(--font-display)", margin: "0 0 8px" }}>No has iniciado sesión</h2>
         <p style={{ color: "var(--muted)", fontSize: 14, margin: "0 0 20px" }}>
-          Entra o crea una cuenta gratis para ver tu plan y tus picks guardados.
+          Entra con tu cuenta para ver tus picks.
         </p>
         <Link className="btn btn-primary" to="/entrar">
-          Entrar / crear cuenta
+          Entrar
         </Link>
       </div>
     );
   }
 
-  const plan = DEMO_MODE ? demoPlan : (profile?.plan ?? "free");
-
   async function handleSignOut() {
     await signOut();
-    nav("/");
+    nav("/entrar");
   }
 
   return (
@@ -67,31 +51,6 @@ export function Account() {
           )}
         </section>
       )}
-
-      <section className="card" style={{ display: "grid", gap: 14 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <CreditCard aria-hidden style={{ color: "var(--primary)" }} />
-          <div style={{ flex: "1 1 200px" }}>
-            <div style={{ font: "700 16px/1 var(--font-display)" }}>
-              Plan {PLAN_NAME[plan]}
-            </div>
-            <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 4 }}>
-              {PLAN_DESC[plan]}
-            </div>
-          </div>
-          {plan !== "vip" && (
-            <a className="btn btn-primary btn-sm" href="/#planes">
-              Mejorar plan
-            </a>
-          )}
-        </div>
-        {DEMO_MODE && (
-          <p style={{ fontSize: 12, color: "var(--faint)", margin: 0 }}>
-            En modo demo el plan se cambia con el selector "Demo" de la barra
-            superior. Con la cuenta real vendría de tu suscripción.
-          </p>
-        )}
-      </section>
 
       <section className="card" style={{ display: "grid", gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

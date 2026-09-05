@@ -107,9 +107,9 @@ export function AdminPicks() {
                 </td>
                 <td>
                   {p.event}
-                  {p.is_vip && (
-                    <span className="badge badge--vip" style={{ marginLeft: 6 }}>
-                      VIP
+                  {p.source === "ai" && (
+                    <span className="badge badge--ai" style={{ marginLeft: 6 }}>
+                      IA
                     </span>
                   )}
                 </td>

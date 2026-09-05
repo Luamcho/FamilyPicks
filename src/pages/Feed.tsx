@@ -3,7 +3,6 @@ import { Search, ArrowUpDown } from "lucide-react";
 import { PickCard } from "@/components/PickCard";
 import { EmptyState } from "@/components/bits";
 import { getPicks, getStatsOverview } from "@/lib/api";
-import { usePlan } from "@/context/PlanContext";
 import { pct, units } from "@/lib/format";
 import type { Pick, StatsOverview } from "@/lib/types";
 
@@ -33,7 +32,6 @@ function dayKey(iso: string): string {
 }
 
 export function Feed() {
-  const { plan } = usePlan();
   const [picks, setPicks] = useState<Pick[] | null>(null);
   const [stats, setStats] = useState<StatsOverview | null>(null);
   const [sport, setSport] = useState("all");
@@ -43,12 +41,12 @@ export function Feed() {
 
   useEffect(() => {
     let alive = true;
-    getPicks(plan).then((p) => alive && setPicks(p));
+    getPicks().then((p) => alive && setPicks(p));
     getStatsOverview().then((s) => alive && setStats(s));
     return () => {
       alive = false;
     };
-  }, [plan]);
+  }, []);
 
   const filtered = useMemo(() => {
     if (!picks) return [];

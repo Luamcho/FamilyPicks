@@ -43,7 +43,7 @@ const raw: Array<
     published_at: h(-3),
     status: "pending",
     settled_at: null,
-    is_vip: false,
+    source: "manual",
   },
   {
     id: "p2",
@@ -61,7 +61,7 @@ const raw: Array<
     published_at: h(-1),
     status: "pending",
     settled_at: null,
-    is_vip: false,
+    source: "manual",
   },
   {
     id: "p3",
@@ -79,7 +79,7 @@ const raw: Array<
     published_at: h(-2),
     status: "pending",
     settled_at: null,
-    is_vip: true,
+    source: "ai",
   },
   {
     id: "p4",
@@ -97,7 +97,7 @@ const raw: Array<
     published_at: h(-7),
     status: "pending",
     settled_at: null,
-    is_vip: false,
+    source: "manual",
   },
   {
     id: "p5",
@@ -115,7 +115,7 @@ const raw: Array<
     published_at: d(-1.2),
     status: "won",
     settled_at: d(-0.8),
-    is_vip: false,
+    source: "manual",
   },
   {
     id: "p6",
@@ -133,7 +133,7 @@ const raw: Array<
     published_at: d(-1.3),
     status: "won",
     settled_at: d(-0.9),
-    is_vip: false,
+    source: "manual",
   },
   {
     id: "p7",
@@ -151,7 +151,7 @@ const raw: Array<
     published_at: d(-1.4),
     status: "void",
     settled_at: d(-0.9),
-    is_vip: false,
+    source: "manual",
   },
   {
     id: "p8",
@@ -169,7 +169,7 @@ const raw: Array<
     published_at: d(-1.5),
     status: "lost",
     settled_at: d(-0.85),
-    is_vip: false,
+    source: "manual",
   },
 ];
 

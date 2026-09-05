@@ -4,7 +4,6 @@ import {
   Minus,
   X,
   Clock,
-  Crown,
   Circle,
   CircleDot,
   Shield,
@@ -55,14 +54,6 @@ export function StatusBadge({
   return (
     <span className="badge badge--push">
       <Minus aria-hidden /> Nulo · {units(0)}
-    </span>
-  );
-}
-
-export function VipBadge() {
-  return (
-    <span className="badge badge--vip">
-      <Crown aria-hidden /> VIP
     </span>
   );
 }

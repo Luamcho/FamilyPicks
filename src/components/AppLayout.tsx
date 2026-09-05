@@ -1,18 +1,10 @@
-import { NavLink, Outlet, useLocation } from "react-router-dom";
-import {
-  Home,
-  Target,
-  ListChecks,
-  BarChart3,
-  UserRound,
-} from "lucide-react";
+import { Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Target, ListChecks, BarChart3, UserRound, LayoutDashboard } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { RgStrip, DemoBanner } from "./bits";
 import { DEMO_MODE } from "@/lib/api";
-import { usePlan } from "@/context/PlanContext";
 import { useAuth } from "@/context/AuthContext";
 import { useIsAdmin } from "@/lib/auth";
-import type { PlanTier } from "@/lib/types";
 
 const NAV = [
   { to: "/picks", label: "Picks", icon: Target },
@@ -29,24 +21,31 @@ const TITLES: Record<string, string> = {
 };
 
 export function AppLayout() {
-  const { plan: demoPlan, setPlan } = usePlan();
-  const { user, profile } = useAuth();
+  const { user, loading } = useAuth();
   const { pathname } = useLocation();
   const { isAdmin } = useIsAdmin();
   const title = TITLES[pathname] ?? "FamilyPicks";
-  const plan: PlanTier = DEMO_MODE ? demoPlan : (profile?.plan ?? "free");
+
+  // App privada de un solo usuario: sin sesión, no hay nada que ver.
+  if (!DEMO_MODE && !loading && !user) {
+    return <Navigate to="/entrar" state={{ from: pathname }} replace />;
+  }
+  if (!DEMO_MODE && loading) {
+    return (
+      <div style={{ display: "grid", placeItems: "center", minHeight: "100dvh", color: "var(--muted)" }}>
+        Cargando…
+      </div>
+    );
+  }
 
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <NavLink to="/" className="brand">
+        <NavLink to="/picks" className="brand">
           <span className="dot" aria-hidden />
           FamilyPicks
         </NavLink>
         <nav aria-label="Principal">
-          <NavLink to="/" end className="nav-i">
-            <Home aria-hidden /> Inicio
-          </NavLink>
           {NAV.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -61,25 +60,14 @@ export function AppLayout() {
           {isAdmin && (
             <>
               <NavLink to="/admin" style={{ color: "var(--primary)", fontWeight: 600 }}>
-                Panel del tipster →
+                <LayoutDashboard aria-hidden style={{ width: 13, height: 13, verticalAlign: -2 }} /> Panel del
+                tipster →
               </NavLink>
               <br />
               <br />
             </>
           )}
-          {!DEMO_MODE && !user ? (
-            <>
-              <NavLink to="/entrar" style={{ color: "var(--primary)", fontWeight: 600 }}>
-                Entrar / crear cuenta →
-              </NavLink>
-              <br />
-              <br />
-            </>
-          ) : null}
-          <b>Plan {planLabel(plan)}</b>
-          {plan === "free" ? " · picks con 24 h de retraso." : " · picks en tiempo real."}
-          <br />
-          18+ · Juega con responsabilidad.
+          Uso privado · 18+ · Juega con responsabilidad.
         </div>
       </aside>
 
@@ -102,39 +90,6 @@ export function AppLayout() {
           </span>
           <h1>{title}</h1>
           <span className="spacer" />
-          {DEMO_MODE && (
-            <label
-              className="plan-pill"
-              title="Plan de demostración: cambia lo que ves en el feed"
-            >
-              <span>Demo</span>
-              <select
-                value={plan}
-                onChange={(e) => setPlan(e.target.value as PlanTier)}
-                aria-label="Plan de demostración"
-                style={{
-                  border: 0,
-                  background: "transparent",
-                  color: "var(--text)",
-                  font: "600 12px/1 var(--font-display)",
-                }}
-              >
-                <option value="free">Gratis</option>
-                <option value="premium">Premium</option>
-                <option value="vip">VIP</option>
-              </select>
-            </label>
-          )}
-          {!DEMO_MODE && (
-            <span className="plan-pill">
-              <span>{planLabel(plan)}</span>
-              {plan !== "vip" && (
-                <a className="up" href="/#planes">
-                  Mejorar
-                </a>
-              )}
-            </span>
-          )}
           <ThemeToggle />
         </div>
 
@@ -143,9 +98,6 @@ export function AppLayout() {
       </main>
 
       <nav className="bottomnav" aria-label="Principal (móvil)">
-        <NavLink to="/" end className={({ isActive }) => `bn-i${isActive ? " active" : ""}`}>
-          <Home aria-hidden /> Inicio
-        </NavLink>
         {NAV.map(({ to, label, short, icon: Icon }) => (
           <NavLink
             key={to}
@@ -158,8 +110,4 @@ export function AppLayout() {
       </nav>
     </div>
   );
-}
-
-function planLabel(p: PlanTier): string {
-  return p === "free" ? "Gratis" : p === "premium" ? "Premium" : "VIP";
 }

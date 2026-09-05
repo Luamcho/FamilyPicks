@@ -11,7 +11,6 @@ import type {
   BankrollPoint,
   Pick,
   PickStatus,
-  PlanTier,
   SportStat,
   StatsOverview,
 } from "./types";
@@ -19,70 +18,40 @@ import type {
 export const DEMO_MODE = !isSupabaseConfigured;
 export type { NewPickInput };
 
-const DELAY_MS = 24 * 3600_000;
+const PICK_COLS =
+  "id, competition, event, market, market_category, selection, odds, closing_odds, " +
+  "stake, confidence, event_start_at, published_at, status, result_units, settled_at, source, " +
+  "sports(slug, name)";
 
-/** Replica de la RLS de `picks` para el modo demo. */
-function applyVisibility(picks: Pick[], plan: PlanTier): Pick[] {
-  return picks.map((p) => {
-    if (p.status !== "pending") return p;
-    const age = Date.now() - new Date(p.published_at).getTime();
-    const unlocked = age >= DELAY_MS;
-    const canSeeNow = plan === "vip" || (plan === "premium" && !p.is_vip);
-    if (unlocked || canSeeNow) return p;
+function mapRows(data: unknown): Pick[] {
+  const rows = (data ?? []) as unknown as Array<Record<string, unknown>>;
+  return rows.map((r) => {
+    const sport = r.sports as { slug?: string; name?: string } | null;
     return {
-      ...p,
-      locked: true,
-      unlock_in_hours: Math.max(1, Math.ceil((DELAY_MS - age) / 3600_000)),
+      ...(r as unknown as Pick),
+      sport_slug: sport?.slug ?? "otros",
+      sport_name: sport?.name ?? "Otros",
     };
   });
 }
 
-const PICK_COLS =
-  "id, competition, event, market, market_category, selection, odds, closing_odds, " +
-  "stake, confidence, event_start_at, published_at, status, result_units, settled_at, is_vip, " +
-  "sports(slug, name)";
-
-export async function getPicks(plan: PlanTier = "free"): Promise<Pick[]> {
+/** Todos tus picks. Es una app privada: solo tú (admin) puedes verlos, la RLS
+ *  ya lo garantiza en el servidor. */
+export async function getPicks(): Promise<Pick[]> {
   if (isSupabaseConfigured && supabase) {
     const { data, error } = await supabase
       .from("picks")
       .select(PICK_COLS)
       .order("published_at", { ascending: false })
-      .limit(60);
+      .limit(200);
     if (error) throw error;
-    const rows = (data ?? []) as unknown as Array<Record<string, unknown>>;
-    return rows.map((r) => {
-      const sport = r.sports as { slug?: string; name?: string } | null;
-      return {
-        ...(r as unknown as Pick),
-        sport_slug: sport?.slug ?? "otros",
-        sport_name: sport?.name ?? "Otros",
-      };
-    });
-  }
-  return applyVisibility(demoPicks(), plan);
-}
-
-/** Todos los picks sin filtro de visibilidad (para el panel de admin). */
-export async function getAllPicks(): Promise<Pick[]> {
-  if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase
-      .from("picks")
-      .select(PICK_COLS)
-      .order("published_at", { ascending: false });
-    if (error) throw error;
-    const rows = (data ?? []) as unknown as Array<Record<string, unknown>>;
-    return rows.map((r) => {
-      const sport = r.sports as { slug?: string; name?: string } | null;
-      return {
-        ...(r as unknown as Pick),
-        sport_slug: sport?.slug ?? "otros",
-        sport_name: sport?.name ?? "Otros",
-      };
-    });
+    return mapRows(data);
   }
   return demoPicks();
 }
+
+/** Alias usado por el panel de admin: misma fuente, sin filtros. */
+export const getAllPicks = getPicks;
 
 const sportIdCache = new Map<string, number>();
 async function sportIdBySlug(slug: string): Promise<number> {
@@ -113,7 +82,7 @@ export async function createPick(input: NewPickInput): Promise<void> {
       stake: input.stake,
       confidence: input.confidence,
       event_start_at: input.event_start_at,
-      is_vip: input.is_vip,
+      source: input.source,
       analysis: input.analysis ?? null,
     });
     if (error) throw error;
@@ -178,7 +147,7 @@ export async function getBankroll(
 }
 
 export async function getSettledHistory(): Promise<Pick[]> {
-  const picks = await getPicks("vip");
+  const picks = await getPicks();
   return picks
     .filter((p) => p.status !== "pending")
     .sort(

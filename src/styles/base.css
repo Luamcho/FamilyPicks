@@ -160,9 +160,9 @@ img {
   color: var(--pending);
   background: var(--pending-bg);
 }
-.badge--vip {
-  color: #1a1204;
-  background: linear-gradient(135deg, #eab308, #f59e0b);
+.badge--ai {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
 .rg-strip {

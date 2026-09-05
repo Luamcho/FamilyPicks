@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/Toast";
 import { createPick } from "@/lib/api";
 import { MOCK_SPORTS } from "@/lib/mock";
-import type { MarketCategory } from "@/lib/types";
+import type { MarketCategory, PickSource } from "@/lib/types";
 
 const MARKET_CATEGORIES: { v: MarketCategory; label: string }[] = [
   { v: "goals_lines", label: "Línea de goles / puntos" },
@@ -26,7 +26,7 @@ interface FormState {
   stake: string;
   confidence: string;
   event_start_at: string;
-  is_vip: boolean;
+  source: PickSource;
   analysis: string;
 }
 
@@ -41,7 +41,7 @@ const empty: FormState = {
   stake: "5",
   confidence: "3",
   event_start_at: "",
-  is_vip: false,
+  source: "manual",
   analysis: "",
 };
 
@@ -92,7 +92,7 @@ export function AdminNewPick() {
         stake: Number(f.stake),
         confidence: Number(f.confidence),
         event_start_at: new Date(f.event_start_at).toISOString(),
-        is_vip: f.is_vip,
+        source: f.source,
         analysis: f.analysis.trim() || undefined,
       });
       toast("Pick publicado");
@@ -255,10 +255,10 @@ export function AdminNewPick() {
         <label className="check-row">
           <input
             type="checkbox"
-            checked={f.is_vip}
-            onChange={(e) => set("is_vip", e.target.checked)}
+            checked={f.source === "ai"}
+            onChange={(e) => set("source", e.target.checked ? "ai" : "manual")}
           />
-          Pick VIP (solo el plan VIP lo recibe al instante)
+          Sugerencia de IA (marca esto si te lo propuso un asistente y lo revisaste)
         </label>
 
         <div className="field">

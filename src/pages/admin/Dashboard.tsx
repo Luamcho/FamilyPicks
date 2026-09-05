@@ -104,7 +104,7 @@ export function AdminDashboard() {
                 <div className="si-head">
                   <SportIcon slug={p.sport_slug} />
                   <span className="si-ev">{p.event}</span>
-                  {p.is_vip && <span className="badge badge--vip">VIP</span>}
+                  {p.source === "ai" && <span className="badge badge--ai">IA</span>}
                 </div>
                 <div className="si-meta">
                   {p.competition} · <b>{p.selection}</b> · cuota{" "}

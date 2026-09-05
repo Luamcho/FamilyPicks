@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bookmark, Share2, ShieldCheck, Lock } from "lucide-react";
+import { Bookmark, Share2, ShieldCheck, Sparkles } from "lucide-react";
 import type { Pick } from "@/lib/types";
 import { odds, relative, time } from "@/lib/format";
 import {
@@ -11,39 +11,6 @@ import {
 
 export function PickCard({ pick }: { pick: Pick }) {
   const [saved, setSaved] = useState(false);
-
-  if (pick.locked) {
-    return (
-      <article className="pick pick--locked" data-status="pending">
-        <div className="pk-inner" aria-hidden>
-          <div className="pk-meta">
-            <span className="sport">
-              <SportIcon slug={pick.sport_slug} /> {pick.competition}
-            </span>
-            <time>{time(pick.event_start_at)}</time>
-          </div>
-          <div className="pk-event">{pick.event}</div>
-          <div className="pk-sel">
-            Mercado: <b>{pick.market}</b>
-          </div>
-          <div className="pk-data">
-            <span className="odds">{odds(pick.odds)}</span>
-            <span className="stake">Stake {pick.stake}/10</span>
-          </div>
-        </div>
-        <div className="lock">
-          <Lock aria-hidden />
-          <p>
-            Se publica en <b>{pick.unlock_in_hours} h</b> en tu plan
-          </p>
-          <small>Premium lo recibe ahora, antes del cierre de cuota</small>
-          <a className="btn btn-primary btn-sm" href="/#planes">
-            Verlo ahora con Premium
-          </a>
-        </div>
-      </article>
-    );
-  }
 
   const featured = pick.status === "pending" && (pick.confidence ?? 0) >= 4;
   const publishedInfo =
@@ -62,6 +29,11 @@ export function PickCard({ pick }: { pick: Pick }) {
         <span className="sport">
           <SportIcon slug={pick.sport_slug} /> {pick.competition}
         </span>
+        {pick.source === "ai" && (
+          <span className="badge badge--ai" title="Sugerido por IA">
+            <Sparkles aria-hidden /> IA
+          </span>
+        )}
         <time>{relative(pick.published_at)}</time>
       </div>
       <div className="pk-event">{pick.event}</div>

@@ -1,5 +1,5 @@
-export type PlanTier = "free" | "premium" | "vip";
 export type PickStatus = "pending" | "won" | "lost" | "void" | "cancelled";
+export type PickSource = "manual" | "ai";
 export type MarketCategory =
   | "goals_lines"
   | "handicap"
@@ -34,11 +34,7 @@ export interface Pick {
   status: PickStatus;
   result_units: number | null;
   settled_at: string | null;
-  is_vip: boolean;
-  /** true when the current viewer's plan can't see this pick yet (free + still delayed) */
-  locked?: boolean;
-  /** hours left until a free viewer can see it */
-  unlock_in_hours?: number;
+  source: PickSource;
 }
 
 export interface StatsOverview {
@@ -77,7 +73,5 @@ export interface Profile {
   id: string;
   display_name: string;
   role: "user" | "admin";
-  plan: PlanTier;
-  plan_renews_at: string | null;
   age_verified_at: string | null;
 }

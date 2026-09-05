@@ -2,7 +2,7 @@
 // (publicar pick -> liquidar) sin backend. Los cambios viven solo en este
 // navegador. Con Supabase conectado esta capa no se usa.
 
-import type { MarketCategory, Pick, PickStatus } from "./types";
+import type { MarketCategory, Pick, PickSource, PickStatus } from "./types";
 import { MOCK_PICKS, MOCK_SPORTS } from "./mock";
 
 const ADD_KEY = "fp-demo-picks-added";
@@ -19,7 +19,7 @@ export interface NewPickInput {
   stake: number;
   confidence: number | null;
   event_start_at: string;
-  is_vip: boolean;
+  source: PickSource;
   analysis?: string;
 }
 
@@ -85,7 +85,7 @@ export function addLocalPick(input: NewPickInput): Pick {
     status: "pending",
     result_units: null,
     settled_at: null,
-    is_vip: input.is_vip,
+    source: input.source,
   };
   writeJson(ADD_KEY, [pick, ...readJson<Pick[]>(ADD_KEY, [])]);
   return pick;

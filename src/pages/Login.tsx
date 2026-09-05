@@ -78,8 +78,8 @@ export function Login() {
               <h1>{mode === "login" ? "Entrar" : "Crear cuenta"}</h1>
               <p className="sub">
                 {mode === "login"
-                  ? "Accede para ver tus picks y tu plan."
-                  : "El plan gratis no pide tarjeta."}
+                  ? "Accede para ver tus picks."
+                  : "Panel privado — solo tu cuenta puede entrar."}
               </p>
 
               <div className="auth-tabs" role="tablist">
