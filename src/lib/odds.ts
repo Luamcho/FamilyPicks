@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from "./supabase";
+import { supabase, isSupabaseConfigured, supabaseUrl, supabaseAnonKey } from "./supabase";
 
 export interface OddsSport {
   key: string;
@@ -39,28 +39,46 @@ export interface OddsQuota {
   used: string | null;
 }
 
+// Llamamos por fetch directo (no supabase.functions.invoke): el SDK a veces
+// consume el cuerpo de la respuesta de error antes de que podamos leerlo y
+// solo deja "Edge Function returned a non-2xx status code" — con fetch
+// controlamos nosotros el parseo y siempre recuperamos el { error } real.
 async function invoke<T>(body: Record<string, unknown>): Promise<T> {
-  if (!isSupabaseConfigured || !supabase) {
+  if (!isSupabaseConfigured || !supabase || !supabaseUrl || !supabaseAnonKey) {
     throw new Error("Conecta Supabase para consultar cuotas reales (no disponible en modo demo).");
   }
-  const { data, error } = await supabase.functions.invoke("fetch-odds", { body });
-  if (error) {
-    // supabase-js no siempre expone el JSON de error de la función; intentamos leerlo.
-    const ctx = (error as { context?: Response }).context;
-    if (ctx && typeof ctx.json === "function") {
-      try {
-        const parsed = await ctx.json();
-        if (parsed?.error) throw new Error(parsed.error);
-      } catch {
-        /* usa el mensaje genérico de abajo */
-      }
-    }
-    throw new Error(error.message ?? "No se pudo consultar la función de cuotas");
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) {
+    throw new Error("Tu sesión ha caducado. Vuelve a entrar.");
   }
-  if (data && typeof data === "object" && "error" in data) {
-    throw new Error((data as { error: string }).error);
+
+  const res = await fetch(`${supabaseUrl}/functions/v1/fetch-odds`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: supabaseAnonKey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  let payload: unknown = null;
+  try {
+    payload = await res.json();
+  } catch {
+    /* respuesta sin cuerpo JSON */
   }
-  return data as T;
+
+  if (!res.ok) {
+    const msg =
+      payload && typeof payload === "object" && "error" in payload
+        ? String((payload as { error: unknown }).error)
+        : `Error ${res.status} al consultar cuotas`;
+    throw new Error(msg);
+  }
+  return payload as T;
 }
 
 export async function listOddsSports(): Promise<OddsSport[]> {
