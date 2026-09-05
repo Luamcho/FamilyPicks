@@ -262,7 +262,7 @@ Reglas estrictas:
 Responde SOLO con JSON válido, sin texto extra, con esta forma exacta:
 {"picks":[{"ref":0,"market":"nombre del mercado","market_category":"moneyline","selection":"nombre de la opción elegida","odds":1.85,"stake":5,"confidence":3,"analysis":"..."}]}`;
 
-    const GEMINI_MODEL = "gemini-2.0-flash";
+    const GEMINI_MODEL = "gemini-3.6-flash";
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiKey}`,
       {
