@@ -144,13 +144,16 @@ Deno.serve(async (req) => {
       const marketIds = Object.keys(marketsRaw);
 
       if (marketIds.length === 0) {
+        const noNames = fixture.participant1Name == null && fixture.participant2Name == null;
         return json({
           event: `${fixture.participant1Name ?? "?"} vs ${fixture.participant2Name ?? "?"}`,
           tournament: fixture.tournamentName ?? null,
           startTime: fixture.startTime ?? null,
           bookmaker,
           markets: [],
-          note: `${bookmaker} no tiene cuotas cargadas para este partido ahora mismo.`,
+          note: noNames
+            ? "No se encontró ese fixtureId (o está vacío). Prueba con uno recién sacado de un atajo con hasOdds=true."
+            : `${bookmaker} no tiene cuotas cargadas para este partido ahora mismo. Prueba con otro partido u otra casa.`,
         });
       }
 

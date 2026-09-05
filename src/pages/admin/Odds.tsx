@@ -14,7 +14,7 @@ const PRESETS = [
   { label: "Mercados · Baloncesto", path: "/v4/markets", query: "sportId=11" },
   { label: "Ligas · Fútbol", path: "/v4/tournaments", query: "sportId=10" },
   { label: "Ligas · Baloncesto", path: "/v4/tournaments", query: "sportId=11" },
-  { label: "Fixtures · LaLiga", path: "/v4/fixtures", query: "tournamentId=8" },
+  { label: "Fixtures · LaLiga", path: "/v4/fixtures", query: "tournamentId=8&hasOdds=true" },
   { label: "Participantes · Fútbol", path: "/v4/participants", query: "sportId=10" },
 ];
 
